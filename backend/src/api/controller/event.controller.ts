@@ -2,10 +2,12 @@ import _ from "lodash";
 
 import mongoLib from "../../lib/mongo.lib";
 import loggerLib from "../../lib/logger.lib";
+import pinataLib from "../../lib/pinata.lib";
 
 import eventModel from "../../model/event.model";
 import eventStatusEnum from "../../enum/event.status.enum";
 import eventCategoryEnum from "../../enum/event.category.enum";
+import eventMetadataSchema from "../../schema/event.metadata.schema";
 
 async function getEvents(req: any, res: any) {
     try {
@@ -104,8 +106,31 @@ async function searchEvents(req: any, res: any) {
     }
 }
 
+async function uploadEventMetadata(req: any, res: any) {
+    try {
+        const metadata = req.body;
+
+        const {error} = eventMetadataSchema.validate(metadata);
+        if (error) {
+            // @ts-ignore
+            return res.status(400).send({message: "Bad Request", details: error.details[0].message});
+        }
+
+        const cid = await pinataLib.uploadJson(metadata);
+
+        return res.status(200).send({
+            message: "Success",
+            metadataUrl: `https://${process.env["PINATA_GATEWAY"]}/ipfs/${cid}`
+        });
+    } catch (error) {
+        loggerLib.logError(error);
+        return res.status(500).send({message: "Internal Server Error"});
+    }
+}
+
 export default {
     getEvent: getEvent,
     getEvents: getEvents,
     searchEvents: searchEvents,
+    uploadEventMetadata: uploadEventMetadata
 }
