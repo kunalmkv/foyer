@@ -1,0 +1,21 @@
+name: CI on Self-Hosted Runner
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: self-hosted   # 👈 this ensures job runs on your server
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Print runner info
+        run: |
+          echo "Running on self-hosted runner"
+          uname -a
+          whoami
+
