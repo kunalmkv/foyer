@@ -82,12 +82,6 @@ async function uploadOfferMetadata(req: any, res: any) {
             return res.status(400).send({message: "Bad Request", details: "quantity must be a number"});
         }
 
-        try {
-            metadata.seatNumbers = JSON.parse(metadata.seatNumbers);
-        } catch (error) {
-            return res.status(400).send({message: "Bad Request", details: "seatNumbers must be a JSON array"});
-        }
-
         const {error} = offerMetadataSchema.validate(metadata);
         if (error) {
             // @ts-ignore
