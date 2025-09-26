@@ -7,6 +7,7 @@ import loggerLib from "../lib/logger.lib";
 import userRoutes from "./route/user.route";
 import offerRoute from "./route/offer.route";
 import eventRoute from "./route/event.route";
+import proposalRoute from "./route/proposal.route";
 
 class Api {
     constructor(port: number) {
@@ -24,6 +25,7 @@ class Api {
             app.use("/user", userRoutes);
             app.use("/offer", offerRoute);
             app.use("/event", eventRoute);
+            app.use("/proposal", proposalRoute);
 
             app.get("/status", (req
                 , res) => {
