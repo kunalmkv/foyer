@@ -4,50 +4,120 @@ import {ethers} from 'ethers';
 import loggerLib from "./logger.lib";
 import globalLib from "./global.lib";
 
+import chainEnum from "../enum/chain.enum";
 import globalKeyEnum from "../enum/global.key.enum";
 
-function initialiseProvider(rpcUrl: string) {
+function initialiseProvider(chain: string, rpcUrl: string) {
     try {
-        if (_.isEmpty(rpcUrl)) {
-            throw new Error(`Missing args! rpcUrl: ${rpcUrl}`);
+        if (_.isEmpty(chain) || _.isEmpty(rpcUrl)) {
+            throw new Error(`Missing args! chain: ${chain}, rpcUrl: ${rpcUrl}`);
         }
 
-        globalLib.setGlobalKey(globalKeyEnum.PROVIDER, new ethers.providers.JsonRpcProvider(rpcUrl));
-        loggerLib.logInfo(`Chain provider initialised!`);
+        switch (chain) {
+            case chainEnum.ETH_SEPOLIA:
+                globalLib.setGlobalKey(globalKeyEnum.ETH_SEPOLIA_PROVIDER, new ethers.providers.JsonRpcProvider(rpcUrl));
+                break;
+            case chainEnum.CELO_SEPOLIA:
+                globalLib.setGlobalKey(globalKeyEnum.CELO_SEPOLIA_PROVIDER, new ethers.providers.JsonRpcProvider(rpcUrl));
+                break;
+            default:
+                throw new Error(`Unsupported chain: ${chain}`);
+        }
+
+        loggerLib.logInfo({
+            message: `Provider initialised!`,
+            chain: chain
+        })
     } catch (error) {
         throw error;
     }
 }
 
-function isProviderInitialised() {
+function isProviderInitialised(chain: string) {
     try {
-        const provider = globalLib.getGlobalKey(globalKeyEnum.PROVIDER);
+        if (_.isEmpty(chain)) {
+            throw new Error(`Missing args! chain: ${chain}`);
+        }
+
+        let provider;
+        switch (chain) {
+            case chainEnum.ETH_SEPOLIA:
+                provider = globalLib.getGlobalKey(globalKeyEnum.ETH_SEPOLIA_PROVIDER);
+                break;
+            case chainEnum.CELO_SEPOLIA:
+                provider = globalLib.getGlobalKey(globalKeyEnum.CELO_SEPOLIA_PROVIDER);
+                break;
+            default:
+                throw new Error(`Unsupported chain: ${chain}`);
+        }
+
         return !_.isEmpty(provider);
     } catch (error) {
         throw error;
     }
 }
 
-function getProvider() {
+function getProvider(chain: string) {
     try {
-        if (!isProviderInitialised()) {
+        if (_.isEmpty(chain)) {
+            throw new Error(`Missing args! chain: ${chain}`);
+        }
+
+        if (!isProviderInitialised(chain)) {
             throw new Error(`Provider not initialised!`);
         }
 
-        return globalLib.getGlobalKey(globalKeyEnum.PROVIDER);
+        let provider;
+        switch (chain) {
+            case chainEnum.ETH_SEPOLIA:
+                provider = globalLib.getGlobalKey(globalKeyEnum.ETH_SEPOLIA_PROVIDER);
+                break;
+            case chainEnum.CELO_SEPOLIA:
+                provider = globalLib.getGlobalKey(globalKeyEnum.CELO_SEPOLIA_PROVIDER);
+                break;
+            default:
+                throw new Error(`Unsupported chain: ${chain}`);
+        }
+
+        return provider;
     } catch (error) {
         throw error;
     }
 }
 
-function initialiseContract(address: string, abi: any) {
+function initialiseContract(chain: string, address: string, abi: any) {
     try {
-        if (_.isEmpty(address) || _.isEmpty(abi)) {
-            throw new Error(`Missing args! address: ${address}, abi: ${abi}`);
+        if (_.isEmpty(chain) || _.isEmpty(address) || _.isEmpty(abi)) {
+            throw new Error(`Missing args! chain: ${chain}, address: ${address}, abi: ${abi}`);
         }
 
-        const provider = getProvider();
+        const provider = getProvider(chain);
         return new ethers.Contract(address, abi, provider);
+    } catch (error) {
+        throw error;
+    }
+}
+
+function initialiseContractWithWallet(chain: string, address: string, abi: any, wallet: ethers.Wallet) {
+    try {
+        if (_.isEmpty(chain) || _.isEmpty(address) || _.isEmpty(abi) || _.isEmpty(wallet)) {
+            throw new Error(`Missing args! chain: ${chain}, address: ${address}, abi: ${abi}, wallet: ${wallet}`);
+        }
+
+        return new ethers.Contract(address, abi, wallet);
+    } catch (error) {
+        throw error;
+    }
+}
+
+function initialiseWallet(chain: string, privateKey: string) {
+    try {
+        if (_.isEmpty(chain) || _.isEmpty(privateKey)) {
+            throw new Error(`Missing args! chain: ${chain}, privateKey: ${privateKey}`);
+        }
+
+        const provider = getProvider(chain);
+        return new ethers.Wallet(privateKey, provider);
     } catch (error) {
         throw error;
     }
@@ -68,9 +138,11 @@ async function getAddressFromMessageSignature(message: string, signature: string
 
 export default {
     getProvider: getProvider,
+    initialiseWallet: initialiseWallet,
     initialiseContract: initialiseContract,
     initialiseProvider: initialiseProvider,
     isProviderInitialised: isProviderInitialised,
+    initialiseContractWithWallet:initialiseContractWithWallet,
     getAddressFromMessageSignature: getAddressFromMessageSignature
 }
 

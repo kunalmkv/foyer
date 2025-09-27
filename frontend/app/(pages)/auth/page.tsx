@@ -24,7 +24,7 @@ function VerificationPage() {
                     version: 2,
                     appName: "Foyer",
                     scope: "foyer-test",
-                    endpoint: "0x5B2bd054c299Bc36C6266a6721D383E085237CA1".toLowerCase(),
+                    endpoint: "0x1da4235ba09377415cb5105a7d4749b152cc63af".toLowerCase(),
                     logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
                     userId: "0x46d88f2136C94599D6DAe957De8C61f89F933cBA",
                     endpointType: "staging_celo",

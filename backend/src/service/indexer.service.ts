@@ -22,23 +22,26 @@ export class IndexerService {
     private eventManagerContract: ethers.Contract;
     private offerManagerContract: ethers.Contract;
 
-    constructor(adminManagerAddress: string, eventManagerAddress: string, offerManagerAddress: string) {
+    constructor(chain: string, adminManagerAddress: string, eventManagerAddress: string, offerManagerAddress: string) {
         try {
-            if (_.isEmpty(adminManagerAddress) || _.isEmpty(eventManagerAddress) || _.isEmpty(offerManagerAddress)) {
-                throw new Error(`Missing args! adminManagerAddress: ${adminManagerAddress}, eventManagerAddress: ${eventManagerAddress}, offerManagerAddress: ${offerManagerAddress}`);
+            if (_.isEmpty(chain) || _.isEmpty(adminManagerAddress) || _.isEmpty(eventManagerAddress) || _.isEmpty(offerManagerAddress)) {
+                throw new Error(`Missing args! adminManagerAddress: ${adminManagerAddress}, eventManagerAddress: ${eventManagerAddress}, offerManagerAddress: ${offerManagerAddress} chain: ${chain}`);
             }
 
             this.adminManagerContract = ethersLib.initialiseContract(
+                chain,
                 adminManagerAddress,
                 adminManagerAbi
             );
 
             this.eventManagerContract = ethersLib.initialiseContract(
+                chain,
                 eventManagerAddress,
                 eventManagerAbi
             );
 
             this.offerManagerContract = ethersLib.initialiseContract(
+                chain,
                 offerManagerAddress,
                 offerManagerAbi
             );

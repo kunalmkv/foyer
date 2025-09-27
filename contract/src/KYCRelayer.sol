@@ -19,7 +19,7 @@ contract KYCRelayer is Ownable {
 
     constructor(address _relayerAdmin) Ownable(msg.sender) {
         require(_relayerAdmin != address(0), "Invalid relayer admin address");
-        _relayerAdmin = _relayerAdmin;
+        relayerAdmin = _relayerAdmin;
     }
 
     function addVerifiedUser(address _address) external onlyRelayerAdmin {
