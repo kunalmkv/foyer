@@ -59,6 +59,7 @@ async function validateNonce(req: any, res: any) {
             address: userAddress.toLowerCase()
         }, {
             $set: {
+                isVerified:true,
                 nonce: newNonce
             }
         });
