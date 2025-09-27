@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+import offerTypeEnum from "../enum/offer.type.enum";
 import collectionEnum from "../enum/collection.enum";
 import offerStatusEnum from "../enum/offer.status.enum";
 
@@ -7,6 +8,11 @@ const offerSchema = new mongoose.Schema({
     id: {
         type: Number,
         required: true,
+    },
+    type: {
+        type: String,
+        required: true,
+        enum: Object.values(offerTypeEnum),
     },
     eventId: {
         type: Number,
