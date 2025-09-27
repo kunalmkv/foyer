@@ -15,6 +15,7 @@ pragma solidity ^0.8.13;
 //                    \______/
 //
 
+import {IKYCRelayer} from "./interfaces/IKYCRelayer.sol";
 import {IEventManager} from "./interfaces/IEventManager.sol";
 import {IAdminManager} from "./interfaces/IAdminManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -36,8 +37,10 @@ contract OfferManager {
     }
 
     IERC20 public immutable PYUSD;
+    IKYCRelayer public immutable KYC_RELAYER;
     IEventManager public immutable EVENT_MANAGER;
     IAdminManager public immutable ADMIN_MANAGER;
+    address public immutable swapHook;
 
     uint256 public offerCount;
     mapping(uint256 => Offer) public offers;
@@ -51,10 +54,12 @@ contract OfferManager {
     event OfferToBuyCreated(uint256 indexed offerId, uint256 indexed eventId, address indexed buyer, uint256 bid, uint256 collateral, string metadataUri);
     event OfferToSellCreated(uint256 indexed offerId, uint256 indexed eventId, address indexed seller, uint256 ask, uint256 collateral, string metadataUri);
 
-    constructor(address _pyusd, address _eventManager, address _adminManager) {
+    constructor(address _pyusd, address _kycRelayer,address _eventManager, address _adminManager, address _swapHook) {
         PYUSD = IERC20(_pyusd);
+        KYC_RELAYER = IKYCRelayer(_kycRelayer);
         EVENT_MANAGER = IEventManager(_eventManager);
         ADMIN_MANAGER = IAdminManager(_adminManager);
+        swapHook = _swapHook;
     }
 
     modifier onlyAdmin() {
@@ -62,7 +67,20 @@ contract OfferManager {
         _;
     }
 
-    function createOfferToSell(uint256 _eventId, uint256 _ask, string calldata _metadataUri) external returns (uint256) {
+    modifier onlyKYCVerified() {
+        require(KYC_RELAYER.isVerified(msg.sender), "Caller is not KYC verified");
+        _;
+    }
+
+    modifier onlyKYCVerifiedOrHook(address user) {
+        require(
+            KYC_RELAYER.isVerified(user) || msg.sender == swapHook,
+            "Caller or user is not KYC verified"
+        );
+        _;
+    }
+
+    function createOfferToSell(uint256 _eventId, uint256 _ask, string calldata _metadataUri) external onlyKYCVerified returns (uint256) {
         require(_ask > 0, "Ask must be > 0");
 
         (address creator, uint256 eventTime,, bool isCancelled) = EVENT_MANAGER.events(_eventId);
@@ -89,7 +107,7 @@ contract OfferManager {
         return offerCount;
     }
 
-    function createOfferToBuy(uint256 _eventId, uint256 _bid, string calldata _metadataUri) external returns (uint256) {
+    function createOfferToBuy(uint256 _eventId, uint256 _bid, string calldata _metadataUri) external onlyKYCVerified returns (uint256) {
         require(_bid > 0, "Bid must be > 0");
 
         (address creator, uint256 eventTime,, bool isCancelled) = EVENT_MANAGER.events(_eventId);
@@ -115,7 +133,7 @@ contract OfferManager {
         return offerCount;
     }
 
-    function acceptOffer(uint256 _offerId) external {
+    function acceptOffer(uint256 _offerId) external onlyKYCVerified {
         Offer storage offer = offers[_offerId];
         require(offer.status == OfferStatus.Active, "Offer is not active!");
 
@@ -193,5 +211,69 @@ contract OfferManager {
 
         emit OfferSettled(_offerId, offer.seller, offer.buyer);
         offer.status = OfferStatus.Settled;
+    }
+
+    // Functions called by the swap hook to create offers on behalf of users
+    function createOfferToSellOnBehalf(
+        address user,
+        uint256 _eventId,
+        uint256 _ask,
+        string calldata _metadataUri
+    ) external onlyKYCVerifiedOrHook(user) returns (uint256) {
+        require(_ask > 0, "Ask must be > 0");
+
+        (address creator, uint256 eventTime,, bool isCancelled) = EVENT_MANAGER.events(_eventId);
+        require(creator != address(0), "Event does not exist");
+        require(!isCancelled, "Event is cancelled");
+        require(eventTime > block.timestamp, "Event time must be in the future");
+
+        uint256 collateral = _ask / 2;
+        require(PYUSD.transferFrom(msg.sender, address(this), collateral), "Collateral transfer failed");
+
+        offerCount++;
+        offers[offerCount] = Offer({
+            eventId: _eventId,
+            seller: user,
+            buyer: address(0),
+            amount: _ask,
+            collateral: collateral,
+            metadataUri: _metadataUri,
+            offerType: OfferType.OfferToSell,
+            status: OfferStatus.Active
+        });
+
+        emit OfferToSellCreated(offerCount, _eventId, user, _ask, collateral, _metadataUri);
+        return offerCount;
+    }
+
+    function createOfferToBuyOnBehalf(
+        address user,
+        uint256 _eventId,
+        uint256 _bid,
+        string calldata _metadataUri
+    ) external onlyKYCVerifiedOrHook(user) returns (uint256) {
+        require(_bid > 0, "Bid must be > 0");
+
+        (address creator, uint256 eventTime,, bool isCancelled) = EVENT_MANAGER.events(_eventId);
+        require(creator != address(0), "Event does not exist");
+        require(!isCancelled, "Event is cancelled");
+        require(eventTime > block.timestamp, "Event time must be in the future");
+
+        require(PYUSD.transferFrom(msg.sender, address(this), _bid), "Bid transfer failed");
+
+        offerCount++;
+        offers[offerCount] = Offer({
+            eventId: _eventId,
+            seller: address(0),
+            buyer: user,
+            amount: _bid,
+            collateral: _bid / 2,
+            metadataUri: _metadataUri,
+            offerType: OfferType.OfferToBuy,
+            status: OfferStatus.Active
+        });
+
+        emit OfferToBuyCreated(offerCount, _eventId, user, _bid, _bid / 2, _metadataUri);
+        return offerCount;
     }
 }
