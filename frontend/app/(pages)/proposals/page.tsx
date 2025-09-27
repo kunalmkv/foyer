@@ -6,7 +6,6 @@ import { proposalService } from '@/app/service/proposals.service';
 import { ProposalCard } from './components/ProposalCard';
 import { CreateProposalModal } from './components/CreateProposalModal';
 import { useAccount } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { Plus, Filter } from 'lucide-react';
 
 export default function ProposalsPage() {
@@ -126,59 +125,55 @@ export default function ProposalsPage() {
                         <h1 className="text-4xl font-bold text-gray-900 mb-2">Event Proposals</h1>
                         <p className="text-gray-600">Suggest and vote on new events for the community</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                        {/* Wallet Connection */}
-                        <div className="flex items-center gap-2">
-                            <ConnectButton />
-                            {isConnected && (
-                                <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                                    Connected
-                                </div>
-                            )}
-                        </div>
-                        
-                        <button
-                            onClick={() => setShowCreateModal(true)}
-                            disabled={!isConnected}
-                            className={`px-6 py-3 rounded-lg transition-colors flex items-center gap-2 ${
-                                isConnected
-                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            }`}
-                        >
-                            <Plus size={20} />
-                            Suggest Event
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        disabled={!isConnected}
+                        className={`px-6 py-3 rounded-lg transition-colors flex items-center gap-2 ${
+                            isConnected
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                    >
+                        <Plus size={20} />
+                        Suggest Event
+                    </button>
                 </div>
 
-                {/* Debug Info */}
-                {process.env.NODE_ENV === 'development' && (
-                    <div className="mb-4 p-3 bg-gray-100 rounded-lg text-xs">
-                        <p><strong>Debug Info:</strong></p>
-                        <p>Wallet Connected: {isConnected ? 'Yes' : 'No'}</p>
-                        <p>Address: {address || 'None'}</p>
-                        <p>Proposals Count: {proposals.length}</p>
-                    </div>
-                )}
 
-                {/* Filters */}
-                <div className="flex items-center gap-4 mb-8">
-                    <Filter size={20} className="text-gray-600" />
-                    <div className="flex gap-2 flex-wrap">
-                        {categories.map(category => (
-                            <button
-                                key={category.key}
-                                onClick={() => setFilter(category.key)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                    filter === category.key
-                                        ? 'bg-blue-600 text-white'
-                                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                                }`}
-                            >
-                                {category.label}
-                            </button>
-                        ))}
+                {/* Sort and Filters */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-600">Sort by:</span>
+                            <select className="text-sm border border-gray-300 rounded px-2 py-1 bg-white">
+                                <option>Created Time</option>
+                                <option>Votes</option>
+                                <option>Category</option>
+                            </select>
+                        </div>
+                        <Filter size={20} className="text-gray-600" />
+                        <div className="flex gap-2 flex-wrap">
+                            {categories.map(category => (
+                                <button
+                                    key={category.key}
+                                    onClick={() => setFilter(category.key)}
+                                    className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                        filter === category.key
+                                            ? 'bg-blue-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    {category.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="text"
+                            placeholder="Search proposals..."
+                            className="px-3 py-1 border border-gray-300 rounded text-sm"
+                        />
                     </div>
                 </div>
 
@@ -189,7 +184,7 @@ export default function ProposalsPage() {
                         <p className="text-gray-400">Be the first to suggest an event!</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="space-y-4">
                         {filteredProposals.map(proposal => (
                             <ProposalCard
                                 key={proposal._id}

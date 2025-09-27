@@ -7,6 +7,7 @@ import mongoLib from "./lib/mongo.lib";
 import loggerLib from "./lib/logger.lib";
 
 import Api from "./api/api";
+import ChatService from "./service/chat.service";
 
 import portConfig from "./config/port.config";
 
@@ -15,6 +16,7 @@ import portConfig from "./config/port.config";
         await mongoLib.connect(process.env["MONGO_URL"] as string);
 
         new Api(portConfig.API);
+        new ChatService(portConfig.CHAT || 3002);
     } catch (error) {
         loggerLib.logError(error);
         process.exit(1);

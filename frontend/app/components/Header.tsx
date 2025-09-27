@@ -11,6 +11,7 @@ export const Header = () => {
                 <div className="hidden md:flex gap-6">
                     <a href="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Events</a>
                     <a href="/proposals" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Proposals</a>
+                    <a href="/chat" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Messages</a>
                     <a href="/sell" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Sell</a>
                     <a href="/admin" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Admin</a>
                 </div>
@@ -18,6 +19,7 @@ export const Header = () => {
             <div className="flex gap-6 items-center">
                 <a href="/" className="text-gray-700 hover:text-blue-600 transition-colors">Explore</a>
                 <a href="/proposals" className="text-gray-700 hover:text-blue-600 transition-colors">Proposals</a>
+                <a href="/chat" className="text-gray-700 hover:text-blue-600 transition-colors">Messages</a>
                 <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">My Tickets</a>
 
                 <ConnectButton.Custom>
