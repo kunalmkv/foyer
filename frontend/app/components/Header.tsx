@@ -23,10 +23,9 @@ export const Header = () => {
                 </div>
             </div>
             <div className="flex gap-6 items-center">
-                <a href="#" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Explore</a>
-                <a href="/sell" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Sell</a>
-                <a href="/buy" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Buy</a>
-                <Link href="/auth" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Authentication</Link>
+                <Link href="/admin" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Admin</Link>
+                <Link href="/sell" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Sell</Link>
+                <Link href="/buy" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Buy</Link>
 
                 <ConnectButton.Custom>
                     {({

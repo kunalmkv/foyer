@@ -31,25 +31,26 @@ export default async function Home(){
                 {/* Event Sections */}
                 <div className="space-y-12">
                     <EventSection
-                        title="🎭 Comedy Events Happening"
+                        title="Sports"
+                        events={SportsEvents}
+                        showEdit={false}
+                    />
+                    <EventSection
+                        title="Comedy"
                         events={ComedyEvents}
                         showEdit={false}
                     />
 
-                    <EventSection
-                        title="🏈 Sports Events Happening"
-                        events={SportsEvents}
-                        showEdit={false}
-                    />
+
 
                     <EventSection
-                        title="🎤 Music Events Happening"
+                        title="Music "
                         events={MusicEvents}
                         showEdit={false}
                     />
 
                     <EventSection
-                        title="📚 Education Events Happening"
+                        title= "Education"
                         events={EducationEvents}
                         showEdit={false}
                     />

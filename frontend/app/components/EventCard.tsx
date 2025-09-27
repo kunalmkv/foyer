@@ -2,6 +2,7 @@
 import {useState} from "react";
 import {Calendar, Heart, Users} from "lucide-react";
 import {Events} from "@/app/types/Events";
+import Link from "next/link";
 
 
 export const EventCard = ({ event, size = 'normal' }:{event:Events,size:string}) => {
@@ -25,6 +26,7 @@ export const EventCard = ({ event, size = 'normal' }:{event:Events,size:string})
         }
     };
     return (
+        <Link href={`event/${event.id}`}>
         <div className={`relative group cursor-pointer ${size === 'large' ? 'col-span-2' : ''}`}>
             <div className="relative overflow-hidden rounded-2xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 transform hover:scale-105 hover:border-gray-600/70">
                 <div className={`${size === 'large' ? 'h-64' : 'h-48'} relative`}>
@@ -70,5 +72,6 @@ export const EventCard = ({ event, size = 'normal' }:{event:Events,size:string})
                 </div>
             </div>
         </div>
+        </Link>
     );
 };

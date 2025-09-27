@@ -193,8 +193,8 @@ function AuthPage() {
                           d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
                 </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Connect Your Wallet</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-xl font-semibold text-white mb-3">Connect Your Wallet</h3>
+            <p className="text-gray-300 mb-6">
                 Connect your wallet to begin the authentication process
             </p>
             <ConnectButton />
@@ -209,12 +209,12 @@ function AuthPage() {
                           d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                 </svg>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Sign Message</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-xl font-semibold text-white mb-3">Sign Message</h3>
+            <p className="text-gray-300 mb-6">
                 Sign a message to verify wallet ownership
             </p>
-            <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                <p className="text-sm text-gray-600 break-all">
+            <div className="bg-slate-700/50 rounded-xl p-4 mb-6">
+                <p className="text-sm text-gray-300 break-all">
                     <strong>Message:</strong> {nonce}
                 </p>
             </div>
@@ -248,19 +248,19 @@ function AuthPage() {
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
                     </div>
-                    <p className="text-gray-600 font-medium">Generating QR Code...</p>
+                    <p className="text-gray-300 font-medium">Generating QR Code...</p>
                     <p className="text-gray-400 text-sm mt-1">Please wait a moment</p>
                 </div>
             ) : selfApp ? (
                 <>
                     <div className="mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Identity Verification</h3>
-                        <p className="text-gray-600 text-sm mb-4">
+                        <h3 className="text-lg font-semibold text-white mb-2">Identity Verification</h3>
+                        <p className="text-gray-300 text-sm mb-4">
                             Scan the QR code with the Self app to complete your identity verification
                         </p>
                     </div>
 
-                    <div className="bg-gray-50 rounded-2xl p-6 mb-6 inline-block">
+                    <div className="bg-slate-700/30 rounded-2xl p-6 mb-6 inline-block">
                         <SelfQRcodeWrapper
                             selfApp={selfApp}
                             onSuccess={handleSuccessfulVerification}
@@ -268,27 +268,27 @@ function AuthPage() {
                         />
                     </div>
 
-                    <div className="bg-blue-50 rounded-xl p-4 mb-6">
-                        <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+                    <div className="bg-slate-700/50 border border-slate-600 rounded-xl p-4 mb-6">
+                        <h4 className="font-semibold text-white mb-3 flex items-center">
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                             Verification Requirements
                         </h4>
                         <div className="space-y-2 text-left">
-                            <div className="flex items-center text-sm text-blue-800">
+                            <div className="flex items-center text-sm text-gray-300">
                                 <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
                                 </svg>
                                 Must be 18+ years old
                             </div>
-                            <div className="flex items-center text-sm text-blue-800">
+                            <div className="flex items-center text-sm text-gray-300">
                                 <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
                                 </svg>
                                 Nationality verification
                             </div>
-                            <div className="flex items-center text-sm text-blue-800">
+                            <div className="flex items-center text-sm text-gray-300">
                                 <svg className="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
                                 </svg>
@@ -298,7 +298,7 @@ function AuthPage() {
                     </div>
 
                     <div className="text-center">
-                        <p className="text-xs text-gray-500 mb-2">
+                        <p className="text-xs text-gray-400 mb-2">
                             Don&#39;t have the Self app?
                         </p>
                         <a
@@ -320,12 +320,12 @@ function AuthPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
                 </svg>
             </div>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-3">Verification Complete!</h3>
-            <p className="text-gray-600 mb-6">
+            <h3 className="text-2xl font-semibold text-white mb-3">Verification Complete!</h3>
+            <p className="text-gray-300 mb-6">
                 Your identity has been successfully verified. You can now access all features.
             </p>
-            <div className="bg-green-50 rounded-xl p-4">
-                <p className="text-green-800 text-sm">
+            <div className="bg-slate-700/50 border border-green-600/30 rounded-xl p-4">
+                <p className="text-green-400 text-sm">
                     ✅ Wallet Connected<br/>
                     ✅ Signature Verified<br/>
                     ✅ Identity Verified
@@ -335,7 +335,7 @@ function AuthPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 flex items-center justify-center p-4">
             <div className="w-full max-w-lg mx-auto">
                 {/* Progress Steps */}
                 <div className="mb-8">
@@ -362,7 +362,7 @@ function AuthPage() {
                             );
                         })}
                     </div>
-                    <div className="flex justify-between text-xs text-gray-500">
+                    <div className="flex justify-between text-xs text-gray-300">
                         <span>Connect</span>
                         <span>Verify</span>
                         <span>Identity</span>
@@ -371,7 +371,7 @@ function AuthPage() {
                 </div>
 
                 {/* Main Card */}
-                <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+                <div className="bg-slate-800/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-700 overflow-hidden">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 text-center">
                         <h1 className="text-2xl font-bold text-white mb-2">Authentication</h1>
@@ -404,8 +404,8 @@ function AuthPage() {
                     </div>
 
                     {/* Footer */}
-                    <div className="bg-gray-50 px-8 py-4 text-center">
-                        <div className="flex items-center justify-center text-gray-500 text-xs">
+                    <div className="bg-slate-700/50 px-8 py-4 text-center">
+                        <div className="flex items-center justify-center text-gray-300 text-xs">
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
@@ -417,7 +417,7 @@ function AuthPage() {
 
                 {/* Additional Info */}
                 <div className="mt-6 text-center">
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-gray-300 text-xs">
                         Your privacy is protected. Only required information will be verified and stored securely.
                     </p>
                 </div>

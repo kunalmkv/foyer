@@ -454,18 +454,18 @@ export default function BuyPage() {
 
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md mx-auto">
-                <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="bg-slate-800/90 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700 p-6">
                     <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 text-center">
+                        <h2 className="text-2xl font-bold text-white text-center">
                             Make a Buy Request
                         </h2>
-                        <p className="mt-2 text-center text-sm text-gray-600">
+                        <p className="mt-2 text-center text-sm text-gray-300">
                             Fill out the details to request tickets for purchase
                         </p>
                         {isConnected && (
-                            <div className="mt-2 text-center text-xs text-gray-500">
+                            <div className="mt-2 text-center text-xs text-gray-400">
                                 PYUSD Balance: {pyusdBalance} PYUSD
                             </div>
                         )}
