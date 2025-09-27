@@ -1,4 +1,5 @@
 import _ from "lodash";
+import cors from "cors";
 import express from 'express';
 import {createServer} from 'http';
 import {Server as SocketIOServer} from 'socket.io';
@@ -40,6 +41,7 @@ export default class ChatService {
     }
 
     private setupRoutes(): void {
+        this.app.use(cors());
         this.app.use(express.json());
 
         this.app.get('/status', (req, res) => {
