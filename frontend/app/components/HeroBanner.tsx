@@ -16,11 +16,11 @@ const getCategoryIcon = (category: Events['category']) => {
 
 const getCategoryGradient = (category: Events['category']) => {
     switch(category) {
-        case 'SPORTS': return 'linear-gradient(135deg, #0F4A3C 0%, #2A6B5C 50%, #6D94C5 100%)';
-        case 'MUSIC': return 'linear-gradient(135deg, #2A3B5C 0%, #465C88 50%, #6D94C5 100%)';
-        case 'COMEDY': return 'linear-gradient(135deg, #8B5A3C 0%, #D2691E 50%, #FFD700 100%)';
-        case 'EDUCATION': return 'linear-gradient(135deg, #4A5568 0%, #6B7280 50%, #9CA3AF 100%)';
-        default: return 'linear-gradient(135deg, #6D94C5 0%, #CBD6EB 50%, #E8DFCA 100%)';
+        case 'SPORTS': return 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)';
+        case 'MUSIC': return 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%)';
+        case 'COMEDY': return 'linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%)';
+        case 'EDUCATION': return 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)';
+        default: return 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%)';
     }
 };
 
@@ -35,8 +35,12 @@ export const HeroBanner = ({events}:{events:Events[]}) => {
     // If no active events, return a placeholder
     if (activeEvents.length === 0) {
         return (
-            <div className="relative w-full h-96 rounded-3xl overflow-hidden shadow-2xl bg-gray-100 flex items-center justify-center">
-                <p className="text-gray-500 text-xl">No upcoming events available</p>
+            <div className="relative w-full h-96 rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border border-gray-700">
+                <div className="text-center">
+                    <div className="text-6xl mb-4">🎫</div>
+                    <p className="text-gray-300 text-xl font-medium">No upcoming events available</p>
+                    <p className="text-gray-500 text-sm mt-2">Check back soon for exciting new events!</p>
+                </div>
             </div>
         );
     }
@@ -64,8 +68,8 @@ export const HeroBanner = ({events}:{events:Events[]}) => {
                     <p className="text-xl mb-2 opacity-90">{currentEvent.venue}</p>
                     <p className="text-lg mb-6 opacity-80">{currentEvent.description}</p>
                     <Link href={`/event/${currentEvent._id}`}>
-                        <button className="bg-white text-gray-900 px-8 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-all transform hover:scale-105">
-                            See Tickets
+                        <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+                            See Tickets →
                         </button>
                     </Link>
                 </div>

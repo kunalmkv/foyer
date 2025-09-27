@@ -8,11 +8,11 @@ export const EventCard = ({ event, size = 'normal' }:{event:Events,size:string})
     const [isLiked, setIsLiked] = useState(false);
     const getCategoryGradient = (category: Events['category']) => {
         switch(category) {
-            case 'SPORTS': return 'linear-gradient(135deg, #0F4A3C 0%, #2A6B5C 50%, #6D94C5 100%)';
-            case 'MUSIC': return 'linear-gradient(135deg, #2A3B5C 0%, #465C88 50%, #6D94C5 100%)';
-            case 'COMEDY': return 'linear-gradient(135deg, #8B5A3C 0%, #D2691E 50%, #FFD700 100%)';
-            case 'EDUCATION': return 'linear-gradient(135deg, #4A5568 0%, #6B7280 50%, #9CA3AF 100%)';
-            default: return 'linear-gradient(135deg, #6D94C5 0%, #CBD6EB 50%, #E8DFCA 100%)';
+            case 'SPORTS': return 'linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)';
+            case 'MUSIC': return 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%)';
+            case 'COMEDY': return 'linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%)';
+            case 'EDUCATION': return 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)';
+            default: return 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%)';
         }
     };
     const getCategoryIcon = (category: Events['category']) => {
@@ -26,14 +26,17 @@ export const EventCard = ({ event, size = 'normal' }:{event:Events,size:string})
     };
     return (
         <div className={`relative group cursor-pointer ${size === 'large' ? 'col-span-2' : ''}`}>
-            <div className="relative overflow-hidden rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <div className="relative overflow-hidden rounded-2xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 transform hover:scale-105 hover:border-gray-600/70">
                 <div
-                    className={`${size === 'large' ? 'h-64' : 'h-48'} bg-gradient-to-br ${getCategoryGradient(event.category)} flex items-center justify-center`}
+                    className={`${size === 'large' ? 'h-64' : 'h-48'} flex items-center justify-center relative`}
+                    style={{
+                        background: getCategoryGradient(event.category)
+                    }}
                 >
-                    <div className="text-center text-white">
-                        <div className="text-4xl mb-2">{getCategoryIcon(event.category)}</div>
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+                    <div className="text-center text-white z-10">
+                        <div className="text-5xl mb-2 drop-shadow-lg">{getCategoryIcon(event.category)}</div>
                     </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 group-hover:from-black/60 transition-all duration-300" />
                 </div>
 
                 <button
@@ -41,33 +44,33 @@ export const EventCard = ({ event, size = 'normal' }:{event:Events,size:string})
                         e.stopPropagation();
                         setIsLiked(!isLiked);
                     }}
-                    className="absolute top-4 right-4 p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+                    className="absolute top-4 right-4 p-2 bg-black/30 backdrop-blur-sm rounded-full hover:bg-black/50 transition-all duration-200 border border-white/20 hover:border-white/40"
                 >
                     <Heart
-                        size={20}
+                        size={18}
                         className={`${isLiked ? 'fill-red-500 text-red-500' : 'text-white'} transition-colors`}
                     />
                 </button>
 
-                <div className="absolute top-4 left-4 bg-black/50 text-white px-2 py-1 rounded-lg text-sm font-medium">
+                <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-sm text-white px-3 py-1 rounded-xl text-xs font-semibold uppercase tracking-wider border border-white/20">
                     {event.category}
                 </div>
-            </div>
 
-            <div className="p-4">
-                <h3 className="font-bold text-lg text-gray-900 mb-1">{event.name}</h3>
-                {event.venue && (
-                    <div className="flex items-center text-gray-600 text-sm mb-1">
-                        <Calendar size={14} className="mr-1" />
-                        {event.venue}
-                    </div>
-                )}
-                {event.category && (
-                    <div className="flex items-center text-gray-600 text-sm">
-                        <Users size={14} className="mr-1" />
-                        {event.category}
-                    </div>
-                )}
+                <div className="p-6 bg-gray-800/70 backdrop-blur-sm">
+                    <h3 className="font-bold text-xl text-white mb-2 line-clamp-1">{event.name}</h3>
+                    {event.venue && (
+                        <div className="flex items-center text-gray-300 text-sm mb-2">
+                            <Calendar size={16} className="mr-2 text-blue-400" />
+                            <span className="truncate">{event.venue}</span>
+                        </div>
+                    )}
+                    {event.category && (
+                        <div className="flex items-center text-gray-400 text-sm">
+                            <Users size={16} className="mr-2 text-purple-400" />
+                            <span className="font-medium">{event.category}</span>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
