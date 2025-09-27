@@ -59,6 +59,7 @@ async function validateNonce(req: any, res: any) {
             address: userAddress.toLowerCase()
         }, {
             $set: {
+                isVerified: true,
                 nonce: newNonce
             }
         });
@@ -76,7 +77,30 @@ async function validateNonce(req: any, res: any) {
     }
 }
 
+async function getUserInfo(req: any, res: any) {
+    try {
+        const {userAddress} = req.params;
+        if (_.isEmpty(userAddress)) {
+            throw new Error("userAddress is required");
+        }
+
+        const user = await mongoLib.findOneWithSelect(userModel, {
+            address: userAddress.toLowerCase()
+        }, {
+            nonce: 0,
+        });
+        if (_.isEmpty(user)) {
+            throw new Error("User not found");
+        }
+
+        return user;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export default {
     getNonce: getNonce,
+    getUserInfo: getUserInfo,
     validateNonce: validateNonce
 }

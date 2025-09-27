@@ -8,6 +8,11 @@
         "internalType": "address"
       },
       {
+        "name": "_kycRelayer",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
         "name": "_eventManager",
         "type": "address",
         "internalType": "address"
@@ -42,6 +47,19 @@
         "name": "",
         "type": "address",
         "internalType": "contract IEventManager"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "KYC_RELAYER",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IKYCRelayer"
       }
     ],
     "stateMutability": "view"
