@@ -8,10 +8,7 @@ import {
 import { WagmiProvider } from 'wagmi';
 import {
     mainnet,
-    polygon,
-    optimism,
-    arbitrum,
-    base, arbitrumSepolia,
+    arbitrumSepolia,
 } from 'wagmi/chains';
 import {
     QueryClientProvider,
@@ -20,8 +17,9 @@ import {
 
 const config = getDefaultConfig({
     appName: 'Foyer',
-    projectId: 'YOUR_PROJECT_ID',
-    chains: [arbitrumSepolia],
+    projectId: 'foyer-ticketing-app', // Using a simple project ID for development
+    chains: [mainnet, arbitrumSepolia], // Mainnet first for better compatibility
+    ssr: false, // Disable SSR for wallet connection
 });
 
 const queryClient = new QueryClient();
