@@ -7,6 +7,7 @@ import {offerabi} from "@/app/consts/abi";
 import {eventService} from "@/app/service/events.service";
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi';
 import { parseEther, formatEther } from 'viem';
+import { Copy, Check } from 'lucide-react';
 
 const PYUSD_TOKEN_ADDRESS = '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'
 const ERC20_ABI = [
@@ -29,6 +30,13 @@ const ERC20_ABI = [
         "inputs": [{"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}],
         "name": "approve",
         "outputs": [{"name": "", "type": "bool"}],
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [{"name": "", "type": "uint8"}],
         "type": "function"
     }
 ] as const;
@@ -76,7 +84,8 @@ export default function SellPage() {
     const [pendingTicketData, setPendingTicketData] = useState<TicketFormData | null>(null)
     const [currentStep, setCurrentStep] = useState<TransactionStep>(TransactionStep.UPLOADING_METADATA)
     const [pyusdBalance, setPyusdBalance] = useState<string>('0')
-    const [pyusdAllowance, setPyusdAllowance] = useState<bigint>(0n)
+    const [pyusdAllowance, setPyusdAllowance] = useState<bigint>(BigInt(0))
+    const [copiedHash, setCopiedHash] = useState<string | null>(null)
 
     // Wagmi hooks
     const { address, isConnected } = useAccount()
@@ -104,15 +113,32 @@ export default function SellPage() {
         query: { enabled: !!address }
     })
 
+    // Read PYUSD decimals
+    const { data: decimalsData } = useReadContract({
+        address: PYUSD_TOKEN_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'decimals',
+        query: { enabled: true }
+    })
+
     // Update balance and allowance when data changes
     useEffect(() => {
-        if (balanceData) {
-            setPyusdBalance(formatEther(balanceData as bigint))
+        if (balanceData && decimalsData) {
+            const decimals = decimalsData as number
+            const balance = balanceData as bigint
+            // Format balance using the correct decimals
+            const formattedBalance = (Number(balance) / Math.pow(10, decimals)).toString()
+            setPyusdBalance(formattedBalance)
+            console.log('PYUSD balance formatted:', {
+                raw: balance.toString(),
+                decimals,
+                formatted: formattedBalance
+            })
         }
         if (allowanceData) {
             setPyusdAllowance(allowanceData as bigint)
         }
-    }, [balanceData, allowanceData])
+    }, [balanceData, allowanceData, decimalsData])
 
     // Fetch events on component mount
     useEffect(() => {
@@ -199,9 +225,11 @@ export default function SellPage() {
 
     // Calculate required collateral
     const getRequiredCollateral = (): bigint => {
-        if (!totalAskPrice) return BigInt(0)
+        if (!totalAskPrice || !decimalsData) return BigInt(0)
         try {
-            return parseEther(totalAskPrice) / BigInt(2) // Half of ask price
+            const decimals = decimalsData as number
+            const askPriceInWei = BigInt(Math.floor(parseFloat(totalAskPrice) * Math.pow(10, decimals)))
+            return askPriceInWei / BigInt(2) // Half of ask price
         } catch {
             return BigInt(0)
         }
@@ -212,6 +240,21 @@ export default function SellPage() {
         const collateral = getRequiredCollateral()
         const userBalance = balanceData as bigint || BigInt(0)
         const userAllowance = allowanceData as bigint || BigInt(0)
+
+        // Format for display using correct decimals
+        const formatWithDecimals = (value: bigint) => {
+            if (!decimalsData) return '0'
+            const decimals = decimalsData as number
+            return (Number(value) / Math.pow(10, decimals)).toString()
+        }
+
+        console.log('Balance check:', {
+            userBalance: formatWithDecimals(userBalance),
+            userAllowance: formatWithDecimals(userAllowance),
+            collateral: formatWithDecimals(collateral),
+            hasBalance: userBalance >= collateral,
+            hasAllowance: userAllowance >= collateral
+        })
 
         return {
             hasBalance: userBalance >= collateral,
@@ -260,8 +303,21 @@ export default function SellPage() {
     const approvePyusd = async () => {
         const { collateral } = checkBalanceAndAllowance()
 
+        if (collateral === BigInt(0)) {
+            setError('Invalid collateral amount. Please set a valid ask price.')
+            return
+        }
+
         try {
             setCurrentStep(TransactionStep.APPROVING_PYUSD)
+            setError(null)
+            
+            console.log('Approving PYUSD:', {
+                spender: OFFER_MANAGER_ADDRESS,
+                amount: collateral.toString(),
+                formatted: decimalsData ? (Number(collateral) / Math.pow(10, decimalsData as number)).toString() : '0'
+            })
+
             writeContract({
                 address: PYUSD_TOKEN_ADDRESS,
                 abi: ERC20_ABI,
@@ -269,6 +325,7 @@ export default function SellPage() {
                 args: [OFFER_MANAGER_ADDRESS, collateral],
             })
         } catch (error: any) {
+            console.error('Approval error:', error)
             setError('Failed to approve PYUSD spending: ' + (error.message || 'Unknown error'))
             setIsLoading(false)
             setCurrentStep(TransactionStep.UPLOADING_METADATA)
@@ -277,20 +334,41 @@ export default function SellPage() {
 
     // Create the actual offer transaction
     const createOfferTransaction = async () => {
-        if (!pendingTicketData || !selectedEvent || !metadataUri) return
+        if (!pendingTicketData || !selectedEvent || !metadataUri) {
+            setError('Missing required data for offer creation')
+            setIsLoading(false)
+            setCurrentStep(TransactionStep.UPLOADING_METADATA)
+            return
+        }
 
         try {
+            console.log('Creating offer:', {
+                eventId: selectedEvent.id,
+                askPrice: totalAskPrice,
+                metadataUri: metadataUri
+            })
+
+            // Convert ask price to PYUSD wei (6 decimals)
+            const askPriceInPyusdWei = BigInt(Math.floor(parseFloat(totalAskPrice) * Math.pow(10, 6)))
+            
+            console.log('Creating offer with PYUSD amount:', {
+                totalAskPrice,
+                askPriceInPyusdWei: askPriceInPyusdWei.toString(),
+                decimals: 6
+            })
+
             writeContract({
                 address: OFFER_MANAGER_ADDRESS,
                 abi: offerabi,
                 functionName: 'createOfferToSell',
                 args: [
                     BigInt(selectedEvent.id), // _eventId
-                    parseEther(totalAskPrice), // _ask (convert ETH to wei)
+                    askPriceInPyusdWei, // _ask (PYUSD wei with 6 decimals)
                     metadataUri // _metadataUri
                 ],
             })
         } catch (error: any) {
+            console.error('Offer creation error:', error)
             setError('Failed to create offer: ' + (error.message || 'Unknown error'))
             setIsLoading(false)
             setCurrentStep(TransactionStep.UPLOADING_METADATA)
@@ -299,7 +377,10 @@ export default function SellPage() {
 
     // Create blockchain offer with approval flow
     const createBlockchainOffer = async () => {
-        if (!pendingTicketData || !selectedEvent || !isConnected || !metadataUri) return
+        if (!pendingTicketData || !selectedEvent || !isConnected || !metadataUri) {
+            setError('Missing required data. Please ensure wallet is connected and all fields are filled.')
+            return
+        }
 
         try {
             setIsLoading(true)
@@ -313,20 +394,30 @@ export default function SellPage() {
             // Check balance and allowance
             const { hasBalance, hasAllowance, collateral } = checkBalanceAndAllowance()
 
+            console.log('Blockchain offer check:', {
+                hasBalance,
+                hasAllowance,
+                collateral: formatEther(collateral),
+                totalAskPrice
+            })
+
             if (!hasBalance) {
                 throw new Error(`Insufficient PYUSD balance. Required: ${formatEther(collateral)} PYUSD, Available: ${pyusdBalance} PYUSD`)
             }
 
             // If allowance is sufficient, create offer directly
             if (hasAllowance) {
+                console.log('Sufficient allowance, creating offer directly')
                 setCurrentStep(TransactionStep.CREATING_OFFER)
                 createOfferTransaction()
             } else {
                 // Otherwise, approve first
+                console.log('Insufficient allowance, approving first')
                 await approvePyusd()
             }
 
         } catch (error: any) {
+            console.error('Blockchain offer error:', error)
             setError(error.message || 'Failed to create blockchain offer')
             setIsLoading(false)
             setCurrentStep(TransactionStep.UPLOADING_METADATA)
@@ -410,6 +501,17 @@ export default function SellPage() {
         }
     }
 
+    // Copy transaction hash to clipboard
+    const copyTransactionHash = async (txHash: string) => {
+        try {
+            await navigator.clipboard.writeText(txHash)
+            setCopiedHash(txHash)
+            setTimeout(() => setCopiedHash(null), 2000) // Reset after 2 seconds
+        } catch (error) {
+            console.error('Failed to copy transaction hash:', error)
+        }
+    }
+
     // Get current step display text
     const getStepText = (): string => {
         switch (currentStep) {
@@ -455,6 +557,30 @@ export default function SellPage() {
                             <p className="text-sm text-green-600">
                                 Ticket listing created successfully on blockchain!
                             </p>
+                            {hash && (
+                                <div className="flex items-center justify-between mt-2">
+                                    <p className="text-xs text-green-700">
+                                        Transaction: {hash.slice(0, 10)}...{hash.slice(-8)}
+                                    </p>
+                                    <button
+                                        onClick={() => copyTransactionHash(hash)}
+                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-800 rounded transition-colors"
+                                        title="Copy transaction hash"
+                                    >
+                                        {copiedHash === hash ? (
+                                            <>
+                                                <Check size={12} />
+                                                <span>Copied!</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Copy size={12} />
+                                                <span>Copy</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -699,7 +825,7 @@ export default function SellPage() {
                                     </p>
                                     {totalAskPrice && (
                                         <p className="mt-1 text-xs text-gray-600">
-                                            Required collateral: {formatEther(getRequiredCollateral())} PYUSD (50% of ask price)
+                                            Required collateral: {decimalsData ? (Number(getRequiredCollateral()) / Math.pow(10, decimalsData as number)).toString() : '0'} PYUSD (50% of ask price)
                                         </p>
                                     )}
                                 </div>
@@ -709,16 +835,63 @@ export default function SellPage() {
                                     <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md text-xs">
                                         <div className="flex justify-between">
                                             <span>Your PYUSD Balance:</span>
-                                            <span className={parseFloat(pyusdBalance) >= parseFloat(formatEther(getRequiredCollateral())) ? 'text-green-600' : 'text-red-600'}>
+                                            <span className={parseFloat(pyusdBalance) >= (decimalsData ? Number(getRequiredCollateral()) / Math.pow(10, decimalsData as number) : 0) ? 'text-green-600' : 'text-red-600'}>
                                                 {pyusdBalance} PYUSD
                                             </span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span>Current Allowance:</span>
                                             <span className={pyusdAllowance >= getRequiredCollateral() ? 'text-green-600' : 'text-orange-600'}>
-                                                {formatEther(pyusdAllowance)} PYUSD
+                                                {decimalsData ? (Number(pyusdAllowance) / Math.pow(10, decimalsData as number)).toString() : '0'} PYUSD
                                             </span>
                                         </div>
+                                        <div className="flex justify-between">
+                                            <span>Required Collateral:</span>
+                                            <span className="text-blue-600 font-medium">
+                                                {decimalsData ? (Number(getRequiredCollateral()) / Math.pow(10, decimalsData as number)).toString() : '0'} PYUSD
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Approval Status */}
+                                {totalAskPrice && (
+                                    <div className="mb-4">
+                                        {(() => {
+                                            const { hasBalance, hasAllowance, collateral } = checkBalanceAndAllowance()
+                                            if (!hasBalance) {
+                                                return (
+                                                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                                                        <p className="text-sm text-red-600">
+                                                            ❌ Insufficient PYUSD balance. You need {decimalsData ? (Number(collateral) / Math.pow(10, decimalsData as number)).toString() : '0'} PYUSD but only have {pyusdBalance} PYUSD.
+                                                        </p>
+                                                    </div>
+                                                )
+                                            } else if (!hasAllowance) {
+                                                return (
+                                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                                        <p className="text-sm text-yellow-800">
+                                                            ⚠️ You need to approve PYUSD spending for {decimalsData ? (Number(collateral) / Math.pow(10, decimalsData as number)).toString() : '0'} PYUSD before creating the offer.
+                                                        </p>
+                                                        <button
+                                                            onClick={approvePyusd}
+                                                            disabled={isPending || isConfirming || currentStep === TransactionStep.APPROVING_PYUSD}
+                                                            className="mt-2 w-full px-3 py-2 bg-yellow-600 text-white text-sm rounded-md hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            {currentStep === TransactionStep.APPROVING_PYUSD ? 'Approving...' : 'Approve PYUSD'}
+                                                        </button>
+                                                    </div>
+                                                )
+                                            } else {
+                                                return (
+                                                    <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                                                        <p className="text-sm text-green-600">
+                                                            ✅ Ready to create offer. You have sufficient balance and allowance.
+                                                        </p>
+                                                    </div>
+                                                )
+                                            }
+                                        })()}
                                     </div>
                                 )}
 
@@ -733,9 +906,28 @@ export default function SellPage() {
                                     <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                                         <p className="text-sm text-yellow-800">{getStepText()}</p>
                                         {hash && (
-                                            <p className="text-xs text-yellow-700 mt-1">
-                                                Transaction: {hash.slice(0, 10)}...{hash.slice(-8)}
-                                            </p>
+                                            <div className="flex items-center justify-between mt-2">
+                                                <p className="text-xs text-yellow-700">
+                                                    Transaction: {hash.slice(0, 10)}...{hash.slice(-8)}
+                                                </p>
+                                                <button
+                                                    onClick={() => copyTransactionHash(hash)}
+                                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded transition-colors"
+                                                    title="Copy transaction hash"
+                                                >
+                                                    {copiedHash === hash ? (
+                                                        <>
+                                                            <Check size={12} />
+                                                            <span>Copied!</span>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Copy size={12} />
+                                                            <span>Copy</span>
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -756,7 +948,7 @@ export default function SellPage() {
                                     </button>
                                     <button
                                         onClick={createBlockchainOffer}
-                                        disabled={isPending || isConfirming || !totalAskPrice || isLoading}
+                                        disabled={isPending || isConfirming || !totalAskPrice || isLoading || !checkBalanceAndAllowance().hasBalance || !checkBalanceAndAllowance().hasAllowance}
                                         className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {getStepText()}
