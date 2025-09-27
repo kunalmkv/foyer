@@ -156,13 +156,13 @@ export default function SellPage() {
             }
 
             // Create offer using the smart contract function
-            await writeContract({
+             writeContract({
                 address: OFFER_MANAGER_ADDRESS,
                 abi: offerabi,
                 functionName: 'createOfferToSell',
                 args: [
                     BigInt(selectedEvent.id), // _eventId
-                    parseEther(totalAskPrice), // _ask (total price in wei)
+                    (totalAskPrice), // _ask (total price in wei)
                     metadataUri // _metadataUri
                 ],
             })
