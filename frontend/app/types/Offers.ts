@@ -1,7 +1,20 @@
+export enum OfferTypeEnum {
+    OFFER_TO_BUY = 'OFFER_TO_BUY',
+    OFFER_TO_SELL = 'OFFER_TO_SELL',
+}
+
+export enum OfferStatusEnum {
+    ACTIVE = 'ACTIVE',
+    SETTLED = 'SETTLED',
+    ACCEPTED = 'ACCEPTED',
+    DISPUTED = 'DISPUTED',
+    CANCELLED = 'CANCELLED',
+}
+
 export interface Offer {
     _id: string;
     id: number;
-    type: 'OFFER_TO_BUY' | 'OFFER_TO_SELL';
+    type: OfferTypeEnum;
     eventId: number;
     sellerAddress: string;
     collateral: number;
@@ -12,7 +25,7 @@ export interface Offer {
     seatType?: string;
     isPhysicalTicketNeededToAttend?: boolean;
     metadataUrl: string;
-    status: 'ACTIVE' | 'SETTLED' | 'ACCEPTED' | 'DISPUTED' | 'CANCELLED';
+    status: OfferStatusEnum;
     createdAt: string;
     updatedAt: string;
 }
@@ -26,8 +39,8 @@ export interface OfferMetadata {
 
 export interface GetEventOffersRequest {
     eventId: string;
-    status?: string;
-    type?: string;
+    status?: OfferStatusEnum;
+    type?: OfferTypeEnum;
     page?: number;
     limit?: number;
 }
@@ -40,5 +53,5 @@ export interface GetEventOffersResponse {
 export interface IOfferService {
     getEventOffers(params: GetEventOffersRequest): Promise<GetEventOffersResponse>;
     getOffer(offerId: number): Promise<{ message: string; offer: Offer }>;
-    getUserOffers(userAddress: string, params?: { status?: string; type?: string; page?: number; limit?: number }): Promise<GetEventOffersResponse>;
+    getUserOffers(userAddress: string, params?: { status?: OfferStatusEnum; type?: OfferTypeEnum; page?: number; limit?: number }): Promise<GetEventOffersResponse>;
 }

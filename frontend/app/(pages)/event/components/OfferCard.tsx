@@ -13,7 +13,8 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
     };
 
     // Format address for display
-    const formatAddress = (address: string) => {
+    const formatAddress = (address: string | undefined | null) => {
+        if (!address) return 'N/A';
         return `${address.slice(0, 6)}...${address.slice(-4)}`;
     };
 

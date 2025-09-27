@@ -315,7 +315,7 @@ export class IndexerService {
                 {id: offerId.toNumber()},
                 {
                     offerId: offerId.toNumber(),
-                    type: offerTypeEnum.OFFER_TO_SELL,
+                    type: offerTypeEnum.OFFER_TO_BUY,
                     eventId: eventId.toNumber(),
                     buyerAddress: buyer.toLowerCase(),
                     amount: bid.toNumber(),
