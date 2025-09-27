@@ -1,4 +1,5 @@
 import _ from "lodash";
+import axios from "axios";
 import {PinataSDK} from "pinata";
 
 const pinata = new PinataSDK({
@@ -30,12 +31,30 @@ function getGatewayUrl(cid: string): string {
         }
 
         return `https://${process.env["PINATA_GATEWAY"]}/ipfs/${cid}`;
-    }catch(error){
+    } catch (error) {
+        throw error;
+    }
+}
+
+async function downloadJson(gatewayUrl: string): Promise<any> {
+    try {
+        if (_.isEmpty(gatewayUrl)) {
+            throw new Error(`Missing args! gatewayUrl: ${gatewayUrl}`);
+        }
+
+        const response = await axios.get(gatewayUrl);
+        if (_.isEmpty(response) || _.isEmpty(response.data)) {
+            throw new Error(`Failed to download json from gateway! response: ${response}`);
+        }
+
+        return response.data;
+    } catch (error) {
         throw error;
     }
 }
 
 export default {
     uploadJson: uploadJson,
+    downloadJson: downloadJson,
     getGatewayUrl: getGatewayUrl,
 }
