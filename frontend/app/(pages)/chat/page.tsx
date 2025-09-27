@@ -13,6 +13,7 @@ export default function ChatPage() {
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [socketConnected, setSocketConnected] = useState(false);
     const { address, isConnected } = useAccount();
 
     useEffect(() => {
@@ -21,6 +22,18 @@ export default function ChatPage() {
             connectToChat();
         }
     }, [isConnected, address]);
+
+    // Check socket connection status periodically
+    useEffect(() => {
+        const checkConnection = () => {
+            setSocketConnected(chatService.isSocketConnected());
+        };
+
+        checkConnection(); // Check immediately
+        const interval = setInterval(checkConnection, 2000); // Check every 2 seconds
+
+        return () => clearInterval(interval);
+    }, []);
 
     // Refresh chats when the page becomes visible (user returns to tab/page)
     useEffect(() => {
@@ -59,7 +72,11 @@ export default function ChatPage() {
         
         try {
             setLoading(true);
-            const userChats = await chatService.getChats(address);
+            let userChats = await chatService.getChats(address);
+            
+            // Log the number of chats received
+            console.log('Received chats from API:', userChats?.length || 0);
+            
             setChats(userChats);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load chats');
@@ -70,6 +87,7 @@ export default function ChatPage() {
 
     const connectToChat = () => {
         if (address) {
+            console.log('Connecting to chat for address:', address);
             chatService.connectToChat(address);
         }
     };
@@ -130,7 +148,15 @@ export default function ChatPage() {
                 <div className="mb-8 flex items-center justify-between">
                     <div>
                         <h1 className="text-4xl font-bold text-white mb-2">Messages</h1>
-                        <p className="text-gray-300">Chat with buyers and sellers</p>
+                        <div className="flex items-center gap-3">
+                            <p className="text-gray-300">Chat with buyers and sellers</p>
+                            <div className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                                <span className={`text-xs ${socketConnected ? 'text-green-400' : 'text-red-400'}`}>
+                                    {socketConnected ? 'Connected' : 'Disconnected'}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                     <button
                         onClick={loadChats}
@@ -143,7 +169,7 @@ export default function ChatPage() {
                 </div>
 
                 {/* Chat Interface */}
-                <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
+                <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700 overflow-hidden" style={{ height: 'calc(100vh - 220px)', minHeight: '500px' }}>
                     <div className="flex h-full">
                         {/* Chat List - Hidden on mobile when chat is selected */}
                         <div className={`${selectedChat ? 'hidden lg:block' : 'block'} lg:w-1/3`}>
