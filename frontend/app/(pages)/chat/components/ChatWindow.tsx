@@ -16,71 +16,104 @@ export const ChatWindow = ({ chat, currentUser, onBack }: ChatWindowProps) => {
     const [messages, setMessages] = useState<ChatMessageType[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [sendingMessage, setSendingMessage] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messageCallbackRef = useRef<((message: ChatMessageType) => void) | null>(null);
 
     const getOtherParticipant = () => {
         if (!chat) return '';
-        return chat.participants.find(p => p !== currentUser) || chat.participants[0];
+        return chat.participants.find(p => p.toLowerCase() !== currentUser.toLowerCase()) || chat.participants[0];
     };
 
     const scrollToBottom = () => {
+        console.log('Scrolling to bottom');
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     useEffect(() => {
         if (chat) {
+            console.log('Chat changed, loading messages for:', chat._id);
             loadMessages();
+        } else {
+            console.log('No chat selected, clearing messages');
+            setMessages([]);
         }
     }, [chat]);
 
     useEffect(() => {
+        console.log('Messages changed, scrolling to bottom. Message count:', messages.length);
         scrollToBottom();
     }, [messages]);
 
     useEffect(() => {
-        // Listen for new messages
+        // Clean up previous callback
+        if (messageCallbackRef.current) {
+            chatService.removeMessageCallback(messageCallbackRef.current);
+        }
+
+        if (!chat) {
+            messageCallbackRef.current = null;
+            return;
+        }
+
+        // Create new message handler
         const handleNewMessage = (message: ChatMessageType) => {
             console.log('Received new message:', message);
             const otherParticipant = getOtherParticipant();
-            console.log('Current chat participants:', chat?.participants);
-            console.log('Other participant:', otherParticipant, 'Current user:', currentUser);
+            const currentUserLower = currentUser.toLowerCase();
+            const otherParticipantLower = otherParticipant.toLowerCase();
             
             // Check if this message belongs to the current chat
-            if (chat && (message.from === otherParticipant || message.from === currentUser)) {
+            const isForCurrentChat = (
+                (message.from === currentUserLower && message.to === otherParticipantLower) ||
+                (message.from === otherParticipantLower && message.to === currentUserLower)
+            );
+            
+            if (isForCurrentChat) {
                 console.log('Adding message to current chat');
                 setMessages(prev => {
-                    // Remove any temporary/optimistic messages with same content from same user
-                    const withoutOptimistic = prev.filter(m => 
-                        !(m._id.startsWith('temp-') && m.message === message.message && m.from === message.from)
-                    );
+                    console.log('Current messages before adding new one:', prev.length);
                     
-                    // Avoid duplicates (check if real message already exists)
-                    const messageExists = withoutOptimistic.some(m => 
-                        m.message === message.message && 
-                        m.from === message.from && 
-                        Math.abs(new Date(m.timestamp).getTime() - new Date(message.timestamp).getTime()) < 5000
-                    );
+                    // Simple deduplication: check if message with same ID already exists
+                    const messageExists = prev.some(m => m._id === message._id);
                     
                     if (messageExists) {
                         console.log('Message already exists, not adding duplicate');
-                        return withoutOptimistic;
+                        return prev;
                     }
                     
-                    console.log('Adding new message to chat');
-                    return [...withoutOptimistic, message];
+                    // Remove any temporary messages from the same user with same content
+                    const withoutTemp = prev.filter(m => 
+                        !(m._id.startsWith('temp-') && 
+                          m.message === message.message && 
+                          m.from === message.from)
+                    );
+                    
+                    console.log('Messages after removing temp:', withoutTemp.length);
+                    console.log('Adding new message to chat:', message);
+                    
+                    const newMessages = [...withoutTemp, message].sort((a, b) => 
+                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                    );
+                    
+                    console.log('Final messages array:', newMessages.length);
+                    return newMessages;
                 });
             } else {
-                console.log('Message not for current chat, ignoring');
+                console.log('Message not for current chat, ignoring. Expected participants:', currentUserLower, otherParticipantLower, 'Got:', message.from, message.to);
             }
         };
 
-        if (chat) {
-            console.log('Setting up message listener for chat:', chat._id);
-            chatService.onNewMessage(handleNewMessage);
-        }
+        // Store the callback reference and register it
+        messageCallbackRef.current = handleNewMessage;
+        chatService.onNewMessage(handleNewMessage);
+        console.log('Set up message listener for chat:', chat._id);
 
         return () => {
-            // Cleanup would go here if needed
+            if (messageCallbackRef.current) {
+                chatService.removeMessageCallback(messageCallbackRef.current);
+                messageCallbackRef.current = null;
+            }
         };
     }, [chat, currentUser]);
 
@@ -90,37 +123,89 @@ export const ChatWindow = ({ chat, currentUser, onBack }: ChatWindowProps) => {
         setLoading(true);
         try {
             const otherParticipant = getOtherParticipant();
-            const fetchedMessages = await chatService.getMessages(currentUser, otherParticipant);
-            setMessages(fetchedMessages.reverse()); // Reverse to show oldest first
+            console.log('Loading messages between:', currentUser, 'and', otherParticipant);
+            
+            let fetchedMessages = await chatService.getMessages(
+                currentUser.toLowerCase(), 
+                otherParticipant.toLowerCase()
+            );
+            
+            // Log the number of messages received
+            console.log('Received messages from API:', fetchedMessages?.length || 0);
+            
+            console.log('Fetched messages:', fetchedMessages);
+            console.log('Fetched messages type:', typeof fetchedMessages);
+            console.log('Is array:', Array.isArray(fetchedMessages));
+            
+            if (!Array.isArray(fetchedMessages)) {
+                console.error('Fetched messages is not an array:', fetchedMessages);
+                setMessages([]);
+                return;
+            }
+            
+            // Log each message for debugging
+            fetchedMessages.forEach((msg, index) => {
+                console.log(`Message ${index}:`, {
+                    id: msg._id,
+                    from: msg.from,
+                    to: msg.to,
+                    message: msg.message,
+                    timestamp: msg.timestamp
+                });
+            });
+            
+            // Sort messages by timestamp to ensure proper order
+            const sortedMessages = fetchedMessages.sort((a, b) => {
+                const timeA = new Date(a.timestamp).getTime();
+                const timeB = new Date(b.timestamp).getTime();
+                console.log(`Sorting: ${a.message.substring(0, 20)}... (${timeA}) vs ${b.message.substring(0, 20)}... (${timeB})`);
+                return timeA - timeB;
+            });
+            
+            console.log('Sorted messages:', sortedMessages);
+            console.log('Setting messages state with', sortedMessages.length, 'messages');
+            setMessages(sortedMessages);
         } catch (error) {
             console.error('Failed to load messages:', error);
+            setMessages([]); // Clear messages on error
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSendMessage = () => {
-        if (!newMessage.trim() || !chat) {
-            console.log('Cannot send message: empty message or no chat', { newMessage: newMessage.trim(), chat });
+    const handleSendMessage = async () => {
+        if (!newMessage.trim() || !chat || sendingMessage) {
+            console.log('Cannot send message:', { 
+                hasMessage: !!newMessage.trim(), 
+                hasChat: !!chat, 
+                sendingMessage 
+            });
             return;
         }
 
         const otherParticipant = getOtherParticipant();
+        const messageText = newMessage.trim();
+        
         console.log('Sending message:', {
             to: otherParticipant,
-            message: newMessage.trim(),
+            message: messageText,
             from: currentUser,
             chat: chat._id
         });
 
-        const messageText = newMessage.trim();
+        setSendingMessage(true);
         
         try {
+            // Check if socket is connected
+            if (!chatService.isSocketConnected()) {
+                throw new Error('Chat service is not connected');
+            }
+
             // Optimistically add message to UI immediately
             const optimisticMessage: ChatMessageType = {
-                _id: `temp-${Date.now()}`, // Temporary ID
-                from: currentUser,
-                to: otherParticipant,
+                _id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                from: currentUser.toLowerCase(),
+                to: otherParticipant.toLowerCase(),
                 message: messageText,
                 timestamp: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
@@ -141,9 +226,17 @@ export const ChatWindow = ({ chat, currentUser, onBack }: ChatWindowProps) => {
             console.log('Message sent successfully');
         } catch (error) {
             console.error('Failed to send message:', error);
+            
             // Remove the optimistic message if sending failed
             setMessages(prev => prev.filter(m => !m._id.startsWith('temp-')));
-            alert('Failed to send message. Please try again.');
+            
+            // Restore the message text
+            setNewMessage(messageText);
+            
+            // Show error to user
+            alert(`Failed to send message: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        } finally {
+            setSendingMessage(false);
         }
     };
 
@@ -196,24 +289,34 @@ export const ChatWindow = ({ chat, currentUser, onBack }: ChatWindowProps) => {
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-900/50" style={{ minHeight: '200px' }}>
                 {loading ? (
                     <div className="flex justify-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                        <p className="text-gray-400 mt-2">Loading messages...</p>
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="text-center py-8 text-gray-400">
+                        <div className="w-16 h-16 bg-gray-700 border border-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">💬</span>
+                        </div>
                         <p>No messages yet</p>
                         <p className="text-sm">Start the conversation!</p>
                     </div>
                 ) : (
-                    messages.map((message) => (
-                        <ChatMessage
-                            key={`${message._id || message.timestamp}-${message.from}`}
-                            message={message}
-                            currentUser={currentUser}
-                        />
-                    ))
+                    <>
+                        {console.log('Rendering messages:', messages.length, 'messages')}
+                        {messages.map((message, index) => {
+                            console.log(`Rendering message ${index}:`, message);
+                            return (
+                                <ChatMessage
+                                    key={`${message._id || `${message.timestamp}-${index}`}-${message.from}`}
+                                    message={message}
+                                    currentUser={currentUser}
+                                />
+                            );
+                        })}
+                    </>
                 )}
                 <div ref={messagesEndRef} />
             </div>
@@ -234,10 +337,14 @@ export const ChatWindow = ({ chat, currentUser, onBack }: ChatWindowProps) => {
                     </div>
                     <button
                         onClick={handleSendMessage}
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || sendingMessage}
                         className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
                     >
-                        <Send size={20} />
+                        {sendingMessage ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        ) : (
+                            <Send size={20} />
+                        )}
                     </button>
                 </div>
             </div>

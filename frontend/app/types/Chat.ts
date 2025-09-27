@@ -30,6 +30,8 @@ export interface IChatService {
     connectToChat(userId: string): void;
     sendMessage(data: SendMessageRequest): void;
     onNewMessage(callback: (message: ChatMessage) => void): void;
+    removeMessageCallback(callback: (message: ChatMessage) => void): void;
+    isSocketConnected(): boolean;
     initiateOfferChat(buyerAddress: string, sellerAddress: string, offerId: number, offerType: 'OFFER_TO_BUY' | 'OFFER_TO_SELL'): Promise<void>;
     disconnect(): void;
 }

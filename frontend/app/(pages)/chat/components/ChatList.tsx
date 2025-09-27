@@ -33,7 +33,7 @@ export const ChatList = ({ chats, currentUser, onChatSelect, selectedChatId }: C
     };
 
     const getOtherParticipant = (chat: Chat) => {
-        return chat.participants.find(p => p !== currentUser) || chat.participants[0];
+        return chat.participants.find(p => p.toLowerCase() !== currentUser.toLowerCase()) || chat.participants[0];
     };
 
     const truncateMessage = (message: string, maxLength: number = 50) => {
@@ -93,7 +93,7 @@ export const ChatList = ({ chats, currentUser, onChatSelect, selectedChatId }: C
                                             </div>
                                             
                                             <p className="text-sm text-gray-300 truncate">
-                                                {chat.lastMessageFrom === currentUser ? 'You: ' : ''}
+                                                {chat.lastMessageFrom.toLowerCase() === currentUser.toLowerCase() ? 'You: ' : ''}
                                                 {truncateMessage(chat.lastMessage)}
                                             </p>
                                         </div>
