@@ -64,12 +64,23 @@ export default class ChatService {
 
                 const chats = await mongoLib.findWithSort(
                     chatModel,
-                    {participants: userId},
+                    {participants: userId.toLowerCase()},
                     {lastMessageTimestamp: -1}
                 );
 
+                // Transform chats to include _id and ensure proper format
+                const transformedChats = chats.map((chat: any) => ({
+                    _id: chat._id.toString(),
+                    participants: chat.participants,
+                    lastMessage: chat.lastMessage,
+                    lastMessageFrom: chat.lastMessageFrom,
+                    lastMessageTimestamp: chat.lastMessageTimestamp.toISOString(),
+                    createdAt: chat.createdAt.toISOString(),
+                    updatedAt: chat.updatedAt.toISOString()
+                }));
+
                 return res.json({
-                    chats: chats
+                    chats: transformedChats
                 });
             } catch (error) {
                 loggerLib.logError({
@@ -96,17 +107,28 @@ export default class ChatService {
                     chatMessageModel,
                     {
                         $or: [
-                            {from: userId1, to: userId2},
-                            {from: userId2, to: userId1}
+                            {from: userId1.toLowerCase(), to: userId2.toLowerCase()},
+                            {from: userId2.toLowerCase(), to: userId1.toLowerCase()}
                         ]
                     },
                     (Number(page) - 1) * Number(limit),
                     Number(limit),
                     {timestamp: -1}
-                )
+                );
+
+                // Transform messages to include _id and ensure proper format
+                const transformedMessages = messages.map((msg: any) => ({
+                    _id: msg._id.toString(),
+                    from: msg.from,
+                    to: msg.to,
+                    message: msg.message,
+                    timestamp: msg.timestamp.toISOString(),
+                    createdAt: msg.createdAt.toISOString(),
+                    updatedAt: msg.updatedAt.toISOString()
+                }));
 
                 return res.json({
-                    messages: messages
+                    messages: transformedMessages
                 });
             } catch (error) {
                 loggerLib.logError({
@@ -135,33 +157,56 @@ export default class ChatService {
             })
 
             socket.on('join', ({userId}: {userId: string}) => {
-                this.connectedUsers.set(socket.id, userId);
-                socket.join(`user_${userId}`);
+                if (!userId) {
+                    loggerLib.logError({
+                        message: "Join attempt with missing userId",
+                        socketId: socket.id
+                    });
+                    socket.emit('error', { message: 'UserId is required' });
+                    return;
+                }
+
+                const normalizedUserId = userId.toLowerCase();
+                this.connectedUsers.set(socket.id, normalizedUserId);
+                socket.join(`user_${normalizedUserId}`);
 
                 loggerLib.logInfo({
                     message: "User joined chat",
                     socketId: socket.id,
-                    userId: userId
-                })
+                    userId: normalizedUserId,
+                    totalConnected: this.connectedUsers.size
+                });
 
                 socket.emit('joined', {
                     message: 'Successfully joined chat',
-                    userId
+                    userId: normalizedUserId
                 });
             });
 
             socket.on('sendMessage', async ({to, message, from}: {to: string, message: string, from: string}) => {
                 try {
-                    const timestamp = new Date();
+                    if (!to || !message || !from) {
+                        loggerLib.logError({
+                            message: "SendMessage with missing required fields",
+                            socketId: socket.id,
+                            to, message: message ? 'present' : 'missing', from
+                        });
+                        socket.emit('error', { message: 'Missing required fields: to, message, from' });
+                        return;
+                    }
 
-                    await mongoLib.insertOne(chatMessageModel, {
-                        from,
-                        to,
+                    const timestamp = new Date();
+                    const normalizedFrom = from.toLowerCase();
+                    const normalizedTo = to.toLowerCase();
+
+                    const savedMessage = await mongoLib.insertOne(chatMessageModel, {
+                        from: normalizedFrom,
+                        to: normalizedTo,
                         message,
                         timestamp
                     });
 
-                    const participants = [from, to].sort();
+                    const participants = [normalizedFrom, normalizedTo].sort();
                     const existingChat = await mongoLib.findOne(chatModel, {
                         participants: {
                             $all: participants,
@@ -174,7 +219,7 @@ export default class ChatService {
                             {participants: {$all: participants, $size: 2}},
                             {
                                 lastMessage: message,
-                                lastMessageFrom: from,
+                                lastMessageFrom: normalizedFrom,
                                 lastMessageTimestamp: timestamp
                             }
                         );
@@ -182,21 +227,31 @@ export default class ChatService {
                         await mongoLib.insertOne(chatModel, {
                             participants,
                             lastMessage: message,
-                            lastMessageFrom: from,
+                            lastMessageFrom: normalizedFrom,
                             lastMessageTimestamp: timestamp
                         });
                     }
 
-                    this.io.to(`user_${to}`).emit('newMessage', {
-                        from,
+                    // Create the message object to emit
+                    const messageToEmit = {
+                        _id: savedMessage._id.toString(),
+                        from: normalizedFrom,
+                        to: normalizedTo,
                         message,
-                        timestamp,
-                    });
+                        timestamp: timestamp.toISOString(),
+                        createdAt: savedMessage.createdAt.toISOString(),
+                        updatedAt: savedMessage.updatedAt.toISOString()
+                    };
+
+                    // Emit to both sender and receiver
+                    this.io.to(`user_${normalizedTo}`).emit('newMessage', messageToEmit);
+                    this.io.to(`user_${normalizedFrom}`).emit('newMessage', messageToEmit);
 
                     loggerLib.logInfo({
                         message: "Direct message sent and saved",
-                        from,
-                        to
+                        from: normalizedFrom,
+                        to: normalizedTo,
+                        messageId: savedMessage._id.toString()
                     });
                 } catch (error) {
                     loggerLib.logError("Error sending direct message");
