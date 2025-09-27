@@ -389,7 +389,6 @@ export default function BuyPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    eventId: selectedEvent.id,
                     type: 'OFFER_TO_BUY',
                     sellerAddress: address, // For buy offers, this is the buyer's address
                     buyerAddress: null,
