@@ -27,37 +27,37 @@ export const ProposalCard = ({ proposal, onVote, userAddress, isVoting = false }
 
     const getCategoryColor = (category: string) => {
         switch (category) {
-            case 'SPORTS': return 'bg-green-100 text-green-800';
-            case 'COMEDY': return 'bg-purple-100 text-purple-800';
-            case 'MUSIC': return 'bg-pink-100 text-pink-800';
-            case 'EDUCATION': return 'bg-blue-100 text-blue-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'SPORTS': return 'bg-green-900/30 text-green-300 border border-green-500/30';
+            case 'COMEDY': return 'bg-purple-900/30 text-purple-300 border border-purple-500/30';
+            case 'MUSIC': return 'bg-pink-900/30 text-pink-300 border border-pink-500/30';
+            case 'EDUCATION': return 'bg-blue-900/30 text-blue-300 border border-blue-500/30';
+            default: return 'bg-gray-700/50 text-gray-300 border border-gray-600/50';
         }
     };
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'APPROVED': return 'bg-green-100 text-green-800';
-            case 'REJECTED': return 'bg-red-100 text-red-800';
-            case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-            default: return 'bg-gray-100 text-gray-800';
+            case 'APPROVED': return 'bg-green-900/30 text-green-300 border border-green-500/30';
+            case 'REJECTED': return 'bg-red-900/30 text-red-300 border border-red-500/30';
+            case 'PENDING': return 'bg-yellow-900/30 text-yellow-300 border border-yellow-500/30';
+            default: return 'bg-gray-700/50 text-gray-300 border border-gray-600/50';
         }
     };
 
     return (
-        <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors">
+        <div className="bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-2xl p-6 hover:border-gray-600/50 transition-all duration-200 hover:shadow-xl">
             <div className="flex items-start gap-4">
                 {/* Vote Button */}
                 <div className="flex flex-col items-center gap-1">
                     <button
                         onClick={() => onVote(proposal._id, 'UPVOTE')}
                         disabled={(!canVote && !isDownvoted) || isVoting}
-                        className={`w-8 h-8 flex items-center justify-center rounded-full transition-all duration-200 ${
+                        className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200 ${
                             isUpvoted
-                                ? 'bg-green-100 text-green-600 cursor-not-allowed'
+                                ? 'bg-green-600/20 text-green-400 border border-green-500/30 cursor-not-allowed'
                                 : (canVote || isDownvoted) && !isVoting
-                                ? 'bg-gray-100 text-gray-600 hover:bg-green-100 hover:text-green-600'
-                                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                ? 'bg-gray-700/50 text-gray-400 hover:bg-green-600/20 hover:text-green-400 hover:border-green-500/30 border border-gray-600'
+                                : 'bg-gray-700/30 text-gray-500 cursor-not-allowed border border-gray-700'
                         }`}
                     >
                         {isVoting ? (
@@ -66,60 +66,60 @@ export const ProposalCard = ({ proposal, onVote, userAddress, isVoting = false }
                             <ThumbsUp size={16} />
                         )}
                     </button>
-                    <span className="text-sm font-medium text-gray-700">{proposal.upvotes}</span>
+                    <span className="text-sm font-medium text-gray-300">{proposal.upvotes}</span>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                     {/* Title and Category */}
-                    <div className="flex items-start justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 pr-2">
+                    <div className="flex items-start justify-between mb-3">
+                        <h3 className="text-xl font-semibold text-white line-clamp-2 pr-2">
                             {proposal.eventName}
                         </h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${getCategoryColor(proposal.category)}`}>
+                            <span className={`px-3 py-1 rounded-lg text-xs font-medium backdrop-blur-sm ${getCategoryColor(proposal.category)}`}>
                                 {proposal.category}
                             </span>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(proposal.status)}`}>
+                            <span className={`px-3 py-1 rounded-lg text-xs font-medium backdrop-blur-sm ${getStatusColor(proposal.status)}`}>
                                 {proposal.status}
                             </span>
                         </div>
                     </div>
 
                     {/* Description */}
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                    <p className="text-gray-300 text-sm mb-4 line-clamp-2">
                         {proposal.description}
                     </p>
 
                     {/* Meta Information */}
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center justify-between text-xs text-gray-400">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1">
-                                <Calendar size={12} />
+                                <Calendar size={12} className="text-blue-400" />
                                 <span>{formatDate(proposal.date)}</span>
                             </div>
                             <div className="flex items-center gap-1">
-                                <User size={12} />
-                                <span>{proposal.proposer.slice(0, 6)}...{proposal.proposer.slice(-4)}</span>
+                                <User size={12} className="text-purple-400" />
+                                <span className="font-mono">{proposal.proposer.slice(0, 6)}...{proposal.proposer.slice(-4)}</span>
                             </div>
                         </div>
-                        <div className="text-gray-400">
+                        <div className="text-gray-400 bg-gray-700/50 px-2 py-1 rounded-lg">
                             {proposal.upvoters.length + proposal.downvoters.length} votes
                         </div>
                     </div>
 
                     {/* Downvote Button for Mobile */}
                     {userAddress && (
-                        <div className="mt-3 flex justify-end">
+                        <div className="mt-4 flex justify-end">
                             <button
                                 onClick={() => onVote(proposal._id, 'DOWNVOTE')}
                                 disabled={(!canVote && !isUpvoted) || isVoting}
-                                className={`px-3 py-1 text-xs rounded-full transition-all duration-200 ${
+                                className={`px-4 py-2 text-xs rounded-xl transition-all duration-200 flex items-center gap-2 border backdrop-blur-sm ${
                                     isDownvoted
-                                        ? 'bg-red-100 text-red-600 cursor-not-allowed'
+                                        ? 'bg-red-600/20 text-red-400 border-red-500/30 cursor-not-allowed'
                                         : (canVote || isUpvoted) && !isVoting
-                                        ? 'bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600'
-                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        ? 'bg-gray-700/50 text-gray-400 hover:bg-red-600/20 hover:text-red-400 hover:border-red-500/30 border-gray-600'
+                                        : 'bg-gray-700/30 text-gray-500 cursor-not-allowed border-gray-700'
                                 }`}
                             >
                                 {isVoting ? (
@@ -127,15 +127,15 @@ export const ProposalCard = ({ proposal, onVote, userAddress, isVoting = false }
                                 ) : (
                                     <ThumbsDown size={12} />
                                 )}
-                                <span className="ml-1">{proposal.downvotes}</span>
+                                <span>{proposal.downvotes}</span>
                             </button>
                         </div>
                     )}
 
                     {/* Connect Wallet Message */}
                     {!userAddress && (
-                        <div className="mt-3 text-center py-2 bg-gray-50 rounded">
-                            <p className="text-xs text-gray-500">Connect wallet to vote</p>
+                        <div className="mt-4 text-center py-3 bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-xl backdrop-blur-sm">
+                            <p className="text-xs text-amber-300">Connect wallet to vote</p>
                         </div>
                     )}
                 </div>

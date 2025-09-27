@@ -311,7 +311,7 @@ export default function SellPage() {
         try {
             setCurrentStep(TransactionStep.APPROVING_PYUSD)
             setError(null)
-            
+
             console.log('Approving PYUSD:', {
                 spender: OFFER_MANAGER_ADDRESS,
                 amount: collateral.toString(),
@@ -350,7 +350,7 @@ export default function SellPage() {
 
             // Convert ask price to PYUSD wei (6 decimals)
             const askPriceInPyusdWei = BigInt(Math.floor(parseFloat(totalAskPrice) * Math.pow(10, 6)))
-            
+
             console.log('Creating offer with PYUSD amount:', {
                 totalAskPrice,
                 askPriceInPyusdWei: askPriceInPyusdWei.toString(),
@@ -529,56 +529,92 @@ export default function SellPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 p-6">
             <div className="max-w-md mx-auto">
-                <div className="bg-white rounded-lg shadow-md p-6">
-                    <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 text-center">
-                            List Your Tickets
-                        </h2>
-                        <p className="mt-2 text-center text-sm text-gray-600">
+                <div className="bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-2xl shadow-2xl p-8">
+                    <div className="text-center mb-8">
+                        <div className="flex items-center justify-center mb-6">
+                            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mr-4">
+                                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                                </svg>
+                            </div>
+                            <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                                List Your Tickets
+                            </h2>
+                        </div>
+                        <p className="text-gray-300">
                             Fill out the details to list your tickets for sale
                         </p>
                         {isConnected && (
-                            <div className="mt-2 text-center text-xs text-gray-500">
-                                PYUSD Balance: {pyusdBalance} PYUSD
+                            <div className="mt-4 p-3 bg-gray-700/50 border border-gray-600/50 rounded-xl backdrop-blur-sm">
+                                <span className="text-sm text-gray-300">PYUSD Balance: </span>
+                                <span className="text-sm font-medium text-blue-300">{pyusdBalance} PYUSD</span>
                             </div>
                         )}
                     </div>
 
+                    {!isConnected && (
+                        <div className="mb-6 bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-2xl p-6 backdrop-blur-sm">
+                            <div className="text-center">
+                                <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl w-fit mx-auto mb-4">
+                                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-amber-300 mb-2">Wallet Connection Required</h3>
+                                <p className="text-amber-200">Please connect your wallet to list tickets for sale</p>
+                            </div>
+                        </div>
+                    )}
+
                     {error && (
-                        <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
-                            <p className="text-sm text-red-600">{error}</p>
+                        <div className="mb-6 bg-gradient-to-r from-red-900/20 to-pink-900/20 border border-red-500/30 rounded-2xl p-6 backdrop-blur-sm">
+                            <div className="flex items-center">
+                                <div className="p-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl mr-3">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                                    </svg>
+                                </div>
+                                <p className="text-red-300">{error}</p>
+                            </div>
                         </div>
                     )}
 
                     {success && (
-                        <div className="mb-4 p-3 rounded-md bg-green-50 border border-green-200">
-                            <p className="text-sm text-green-600">
-                                Ticket listing created successfully on blockchain!
-                            </p>
+                        <div className="mb-6 bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm">
+                            <div className="flex items-center mb-4">
+                                <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl mr-3">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-xl font-semibold text-green-300">Ticket listing created successfully on blockchain!</h3>
+                            </div>
                             {hash && (
-                                <div className="flex items-center justify-between mt-2">
-                                    <p className="text-xs text-green-700">
-                                        Transaction: {hash.slice(0, 10)}...{hash.slice(-8)}
-                                    </p>
-                                    <button
-                                        onClick={() => copyTransactionHash(hash)}
-                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-800 rounded transition-colors"
-                                        title="Copy transaction hash"
-                                    >
-                                        {copiedHash === hash ? (
-                                            <>
-                                                <Check size={12} />
-                                                <span>Copied!</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy size={12} />
-                                                <span>Copy</span>
-                                            </>
-                                        )}
-                                    </button>
+                                <div className="bg-gray-800/50 rounded-xl p-4 border border-green-500/20">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-sm text-green-300">
+                                            Transaction: {hash.slice(0, 10)}...{hash.slice(-8)}
+                                        </p>
+                                        <button
+                                            onClick={() => copyTransactionHash(hash)}
+                                            className="flex items-center gap-1 px-3 py-2 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                                            title="Copy transaction hash"
+                                        >
+                                            {copiedHash === hash ? (
+                                                <>
+                                                    <Check size={12} />
+                                                    <span>Copied!</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Copy size={12} />
+                                                    <span>Copy</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -587,7 +623,7 @@ export default function SellPage() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Event Search */}
                         <div className="relative">
-                            <label htmlFor="event" className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="event" className="block text-sm font-medium text-gray-300 mb-2">
                                 Select Event
                             </label>
                             <div className="relative">
@@ -599,7 +635,7 @@ export default function SellPage() {
                                     onFocus={() => setShowDropdown(true)}
                                     placeholder={eventsLoading ? "Loading events..." : "Search for an event..."}
                                     disabled={eventsLoading}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200"
+                                    className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400"
                                 />
                                 <div className="absolute inset-y-0 right-0 flex items-center pr-3">
                                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -610,13 +646,13 @@ export default function SellPage() {
 
                             {/* Dropdown */}
                             {showDropdown && !eventsLoading && (
-                                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                                <div className="absolute z-10 w-full mt-1 bg-gray-700/90 backdrop-blur-md border border-gray-600 rounded-xl shadow-2xl max-h-60 overflow-auto">
                                     {filteredEvents.length > 0 ? (
                                         filteredEvents.map((event) => (
                                             <div
                                                 key={event._id}
                                                 onClick={() => handleEventSelect(event)}
-                                                className="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                                className="px-4 py-3 hover:bg-gray-600/50 cursor-pointer border-b border-gray-600/50 last:border-b-0 transition-colors"
                                             >
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -661,13 +697,6 @@ export default function SellPage() {
                             )}
                         </div>
 
-                        {/* Selected Event Display */}
-                        {selectedEvent && (
-                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                                <p className="text-sm font-medium text-blue-900">Selected Event:</p>
-                                <p className="text-sm text-blue-800">{selectedEvent.name} at {selectedEvent.venue}</p>
-                            </div>
-                        )}
 
                         <div>
                             <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
@@ -855,6 +884,7 @@ export default function SellPage() {
                                 )}
 
                                 {/* Approval Status */}
+
                                 {totalAskPrice && (
                                     <div className="mb-4">
                                         {(() => {

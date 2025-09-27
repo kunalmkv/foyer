@@ -28,9 +28,7 @@ export const HeroBanner = ({events}:{events:Events[]}) => {
     const [currentSlide, setCurrentSlide] = useState(0);
     console.log(events,"getting events")
     // Filter events to show only upcoming or ongoing events
-    const activeEvents = events.filter(event =>
-        event.status === 'UPCOMING' || event.status === 'ONGOING'
-    );
+    const activeEvents = events
 
     // If no active events, return a placeholder
     if (activeEvents.length === 0) {

@@ -55,24 +55,31 @@ export const CreateProposalModal = ({ onClose, onSubmit }: CreateProposalModalPr
     ];
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-gray-800/95 backdrop-blur-md border border-gray-700/50 rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl">
                 {/* Header */}
-                <div className="flex justify-between items-center p-6 border-b">
-                    <h2 className="text-xl font-semibold text-gray-900">Suggest New Event</h2>
+                <div className="flex justify-between items-center p-6 border-b border-gray-700/50">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        <h2 className="text-xl font-semibold text-white">Suggest New Event</h2>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                        className="text-gray-400 hover:text-gray-200 transition-colors p-2 hover:bg-gray-700/50 rounded-xl"
                     >
-                        <X size={24} />
+                        <X size={20} />
                     </button>
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {/* Event Name */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                             Event Name *
                         </label>
                         <input
@@ -81,14 +88,14 @@ export const CreateProposalModal = ({ onClose, onSubmit }: CreateProposalModalPr
                             value={formData.eventName}
                             onChange={handleChange}
                             placeholder="Enter event name"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400"
                             required
                         />
                     </div>
 
                     {/* Date */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                             Event Date *
                         </label>
                         <input
@@ -96,25 +103,25 @@ export const CreateProposalModal = ({ onClose, onSubmit }: CreateProposalModalPr
                             name="date"
                             value={formData.date}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white [color-scheme:dark]"
                             required
                         />
                     </div>
 
                     {/* Category */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                             Category *
                         </label>
                         <select
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white"
                             required
                         >
                             {categories.map(category => (
-                                <option key={category.value} value={category.value}>
+                                <option key={category.value} value={category.value} className="bg-gray-800 text-white">
                                     {category.label}
                                 </option>
                             ))}
@@ -123,7 +130,7 @@ export const CreateProposalModal = ({ onClose, onSubmit }: CreateProposalModalPr
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
                             Description *
                         </label>
                         <textarea
@@ -132,26 +139,33 @@ export const CreateProposalModal = ({ onClose, onSubmit }: CreateProposalModalPr
                             onChange={handleChange}
                             placeholder="Describe the event..."
                             rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                            className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400 resize-none"
                             required
                         />
                     </div>
 
                     {/* Submit Buttons */}
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-3 pt-6">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                            className="flex-1 px-4 py-3 border border-gray-600 text-gray-300 rounded-xl hover:bg-gray-700/50 hover:border-gray-500 transition-all duration-200 backdrop-blur-sm"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
                         >
-                            {loading ? 'Creating...' : 'Create Proposal'}
+                            {loading ? (
+                                <div className="flex items-center justify-center gap-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    Creating...
+                                </div>
+                            ) : (
+                                'Create Proposal'
+                            )}
                         </button>
                     </div>
                 </form>

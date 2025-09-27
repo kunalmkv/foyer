@@ -27,15 +27,12 @@ export const EventCard = ({ event, size = 'normal' }:{event:Events,size:string})
     return (
         <div className={`relative group cursor-pointer ${size === 'large' ? 'col-span-2' : ''}`}>
             <div className="relative overflow-hidden rounded-2xl bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl hover:shadow-blue-500/20 transition-all duration-300 transform hover:scale-105 hover:border-gray-600/70">
-                <div
-                    className={`${size === 'large' ? 'h-64' : 'h-48'} flex items-center justify-center relative`}
-                    style={{
-                        background: getCategoryGradient(event.category)
-                    }}
-                >
-                    <div className="text-center text-white z-10">
-                        <div className="text-5xl mb-2 drop-shadow-lg">{getCategoryIcon(event.category)}</div>
-                    </div>
+                <div className={`${size === 'large' ? 'h-64' : 'h-48'} relative`}>
+                    <img
+                        src={event.imageUrl}
+                        alt={event.name}
+                        className="w-full h-full object-cover"
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 group-hover:from-black/60 transition-all duration-300" />
                 </div>
 

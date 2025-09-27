@@ -8,6 +8,7 @@ import {Events} from "@/app/types/Events";
 
 export default async function Home(){
     const events= await eventService.getAllEvents()
+    console.log(events,'masti')
 
     const ComedyEvents=events.filter((event:Events)=>event.category==="COMEDY")
     const MusicEvents=events.filter((event:Events)=>event.category==="MUSIC")

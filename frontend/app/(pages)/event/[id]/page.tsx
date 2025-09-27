@@ -88,10 +88,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#E8DFCA] flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading event...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+                    <p className="text-gray-300">Loading event...</p>
                 </div>
             </div>
         );
@@ -99,18 +99,18 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
     if (error || !event) {
         return (
-            <div className="min-h-screen bg-[#E8DFCA] flex items-center justify-center">
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 flex items-center justify-center">
                 <div className="text-center">
-                    <p className="text-red-600 mb-4">{error || 'Event not found'}</p>
-                    <a href="/" className="text-blue-600 hover:underline">← Back to Home</a>
+                    <p className="text-red-400 mb-4">{error || 'Event not found'}</p>
+                    <a href="/" className="text-blue-400 hover:text-blue-300 transition-colors">← Back to Home</a>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#E8DFCA]">
-            <main className="container mx-auto px-8 py-8">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800">
+            <main className="container mx-auto px-6 md:px-8 py-8">
                 <Breadcrumb eventName={event.name} />
 
                 <EventHero event={event} />
@@ -120,33 +120,33 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     <div className="lg:col-span-2">
                         {/* Filter Buttons */}
                         <div className="mb-6">
-                            <div className="flex gap-2 bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+                            <div className="flex gap-2 bg-gray-800 rounded-xl p-1 shadow-xl border border-gray-700">
                                 <button
                                     onClick={() => setFilter('all')}
-                                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                         filter === 'all'
                                             ? 'bg-blue-600 text-white'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                            : 'text-gray-300 hover:text-white hover:bg-gray-700'
                                     }`}
                                 >
                                     All Offers ({offers.length})
                                 </button>
                                 <button
                                     onClick={() => setFilter('sell')}
-                                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                         filter === 'sell'
                                             ? 'bg-green-600 text-white'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                            : 'text-gray-300 hover:text-white hover:bg-gray-700'
                                     }`}
                                 >
                                     Sell Offers ({sellOffers.length})
                                 </button>
                                 <button
                                     onClick={() => setFilter('buy')}
-                                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                                    className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                         filter === 'buy'
                                             ? 'bg-purple-600 text-white'
-                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                            : 'text-gray-300 hover:text-white hover:bg-gray-700'
                                     }`}
                                 >
                                     Buy Requests ({buyOffers.length})
@@ -157,7 +157,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                         {/* Filtered Offers Section */}
                         {filteredOffers.length > 0 ? (
                             <div className="mb-8">
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                                <h2 className="text-2xl font-bold text-white mb-6">
                                     {filter === 'all' && `All Offers (${filteredOffers.length})`}
                                     {filter === 'sell' && `Available Tickets (${filteredOffers.length})`}
                                     {filter === 'buy' && `Buy Requests (${filteredOffers.length})`}
@@ -169,30 +169,30 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                                 </div>
                             </div>
                         ) : (
-                            <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 text-center">
-                                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 shadow-2xl border border-gray-700 text-center">
+                                <h3 className="text-xl font-bold text-white mb-4">
                                     {filter === 'all' && 'No Active Offers'}
                                     {filter === 'sell' && 'No Sell Offers Available'}
                                     {filter === 'buy' && 'No Buy Requests Available'}
                                 </h3>
-                                <p className="text-gray-600 mb-6">
+                                <p className="text-gray-300 mb-6">
                                     {filter === 'all' && 'There are currently no active buy or sell offers for this event.'}
                                     {filter === 'sell' && 'No one is currently selling tickets for this event.'}
                                     {filter === 'buy' && 'No one is currently looking to buy tickets for this event.'}
                                 </p>
-                                <div className="text-sm text-gray-500 mb-4">
+                                <div className="text-sm text-gray-400 mb-4">
                                     Event ID: {eventId} | API Base URL: http://localhost:3000
                                 </div>
                                 <div className="flex gap-4 justify-center">
-                                    <a 
-                                        href="/sell" 
-                                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+                                    <a
+                                        href="/sell"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors transform hover:scale-105 shadow-xl"
                                     >
                                         List Your Tickets
                                     </a>
-                                    <a 
-                                        href="/buy" 
-                                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+                                    <a
+                                        href="/buy"
+                                        className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-colors transform hover:scale-105 shadow-xl"
                                     >
                                         Make Buy Request
                                     </a>

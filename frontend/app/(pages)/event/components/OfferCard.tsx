@@ -22,17 +22,17 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
     const getStatusColor = (status: string) => {
         switch (status) {
             case 'ACTIVE':
-                return 'bg-green-100 text-green-700';
+                return 'bg-green-900/50 text-green-300 border border-green-600/50';
             case 'SETTLED':
-                return 'bg-blue-100 text-blue-700';
+                return 'bg-blue-900/50 text-blue-300 border border-blue-600/50';
             case 'ACCEPTED':
-                return 'bg-purple-100 text-purple-700';
+                return 'bg-purple-900/50 text-purple-300 border border-purple-600/50';
             case 'DISPUTED':
-                return 'bg-red-100 text-red-700';
+                return 'bg-red-900/50 text-red-300 border border-red-600/50';
             case 'CANCELLED':
-                return 'bg-gray-100 text-gray-700';
+                return 'bg-gray-900/50 text-gray-300 border border-gray-600/50';
             default:
-                return 'bg-gray-100 text-gray-700';
+                return 'bg-gray-900/50 text-gray-300 border border-gray-600/50';
         }
     };
 
@@ -41,16 +41,16 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
         if (type === 'OFFER_TO_SELL') {
             return {
                 icon: TrendingDown,
-                color: 'text-red-600',
+                color: 'text-red-400',
                 label: 'Selling',
-                bgColor: 'bg-red-50'
+                bgColor: 'bg-red-900/50 border border-red-600/50'
             };
         } else {
             return {
                 icon: TrendingUp,
-                color: 'text-green-600',
+                color: 'text-green-400',
                 label: 'Buying',
-                bgColor: 'bg-green-50'
+                bgColor: 'bg-green-900/50 border border-green-600/50'
             };
         }
     };
@@ -59,7 +59,7 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
     const TypeIcon = typeInfo.icon;
 
     return (
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300 hover:border-blue-200">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-2xl border border-gray-700 hover:shadow-3xl transition-all duration-300 hover:border-blue-500/50">
             <div className="flex justify-between items-start mb-4">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -73,23 +73,23 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                     </div>
 
                     {offer.seatType && (
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">{offer.seatType}</h3>
+                        <h3 className="text-xl font-bold text-white mb-2">{offer.seatType}</h3>
                     )}
 
                     {offer.seatNumbers && offer.seatNumbers.length > 0 && (
-                        <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                        <div className="flex items-center gap-1 text-sm text-gray-300 mb-2">
                             <MapPin size={14} />
                             <span>Seats: {offer.seatNumbers.join(', ')}</span>
                         </div>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-gray-300">
                         <div className="flex items-center gap-1">
                             <Users size={14} />
                             <span>{offer.quantity || 1} ticket{offer.quantity !== 1 ? 's' : ''}</span>
                         </div>
                         {offer.isPhysicalTicketNeededToAttend && (
-                            <div className="text-orange-600 font-medium">
+                            <div className="text-orange-400 font-medium">
                                 Physical ticket required
                             </div>
                         )}
@@ -97,10 +97,10 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                 </div>
 
                 <div className="text-right">
-                    <div className="text-2xl font-bold text-gray-900 mb-1">
+                    <div className="text-2xl font-bold text-white mb-1">
                         {formatPrice(offer.collateral * 2)} PYUSD
                     </div>
-                    <div className="text-sm text-gray-600 mb-3">per ticket</div>
+                    <div className="text-sm text-gray-300 mb-3">per ticket</div>
 
                     <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors">
                         {offer.type === 'OFFER_TO_SELL' ? 'Buy Now' : 'Sell Now'}
@@ -109,7 +109,7 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
             </div>
 
             {/* Seller/Buyer Info */}
-            <div className="border-t pt-4 mt-4">
+            <div className="border-t border-gray-600 pt-4 mt-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
@@ -118,16 +118,16 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                             </span>
                         </div>
                         <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-white">
                                 {offer.type === 'OFFER_TO_SELL' ? 'Seller' : 'Buyer'}
                             </div>
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-gray-300">
                                 {formatAddress(offer.sellerAddress)}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1 text-green-600">
+                    <div className="flex items-center gap-1 text-green-400">
                         <Shield size={16} />
                         <span className="text-sm font-medium">Secure</span>
                     </div>
@@ -136,8 +136,8 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
 
 
             {/* Timestamp */}
-            <div className="border-t pt-3 mt-3">
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+            <div className="border-t border-gray-600 pt-3 mt-3">
+                <div className="flex items-center gap-1 text-xs text-gray-400">
                     <Clock size={12} />
                     <span>Created {new Date(offer.createdAt).toLocaleDateString()}</span>
                 </div>
