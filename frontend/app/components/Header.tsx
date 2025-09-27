@@ -9,15 +9,15 @@ export const Header = () => {
             <div className="flex gap-8 items-center">
                 <h1 className="font-bold text-3xl text-gray-900">TicketHub</h1>
                 <div className="hidden md:flex gap-6">
-                    <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Sports</a>
-                    <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Concerts</a>
-                    <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Theater</a>
-                    <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Top Cities</a>
+                    <a href="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Events</a>
+                    <a href="/proposals" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Proposals</a>
+                    <a href="/sell" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Sell</a>
+                    <a href="/admin" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Admin</a>
                 </div>
             </div>
             <div className="flex gap-6 items-center">
-                <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">Explore</a>
-                <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">Sell</a>
+                <a href="/" className="text-gray-700 hover:text-blue-600 transition-colors">Explore</a>
+                <a href="/proposals" className="text-gray-700 hover:text-blue-600 transition-colors">Proposals</a>
                 <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">My Tickets</a>
 
                 <ConnectButton.Custom>
