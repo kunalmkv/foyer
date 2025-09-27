@@ -2,12 +2,19 @@
 
 import { User, Wallet } from "lucide-react";
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import Image from 'next/image';
 
 export const Header = () => {
     return (
         <nav className="flex w-full bg-[#F5EFE6] backdrop-blur-sm justify-between items-center px-8 py-4 shadow-sm border-b border-gray-100">
             <div className="flex gap-8 items-center">
-                <h1 className="font-bold text-3xl text-gray-900">TicketHub</h1>
+                <Image
+                    src="/foyer_vector_logo.png"
+                    alt="Foyer Logo"
+                    width={120}
+                    height={60}
+                    className="w-30 h-15 object-contain"
+                />
                 <div className="hidden md:flex gap-6">
                     <a href="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Events</a>
                     <a href="/proposals" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Proposals</a>
