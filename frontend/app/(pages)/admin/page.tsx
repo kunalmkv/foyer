@@ -2,9 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, ArrowRight, CheckCircle, AlertCircle, Loader, Calendar, Shield } from 'lucide-react';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi';
-import { parseUnits } from 'viem';
-import {baseurl} from "@/app/consts";
-
+import {ADMIN_MANAGER_ADDRESS, baseurl, EVENT_MANAGER_ADDRESS} from "@/app/consts";
+import {eventManagerABI,adminManagerABI} from "@/app/consts/abi"
 interface FormData {
     name: string;
     description: string;
@@ -26,55 +25,8 @@ interface FormErrors {
 
 type Step = 1 | 2;
 
-// Contract configuration - Replace with your actual contract address
-const CONTRACT_ADDRESS = '0x7bc48Ccf09989c696AeB7BaFEBB3aBb6FB410559' as const;
 
-// Contract ABI for admin and createEvent functions
-const CONTRACT_ABI = [
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "admin",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_eventTime",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
-                "name": "_metadataUri",
-                "type": "string"
-            }
-        ],
-        "name": "createEvent",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    }
-] as const;
+
 
 const AdminMetadataPage: React.FC = () => {
     const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -110,18 +62,19 @@ const AdminMetadataPage: React.FC = () => {
     });
 
     // Add admin check hook
-    // @ts-ignore
     const {
         data: isAdmin,
         isLoading: adminCheckLoading,
         error: adminCheckError,
         refetch: refetchAdminStatus
     } = useReadContract({
-        address: CONTRACT_ADDRESS,
-        abi: CONTRACT_ABI,
+        address: ADMIN_MANAGER_ADDRESS,
+        abi: adminManagerABI,
         functionName: 'admin',
         args: [address],
-        enabled: !!address && isConnected,
+        query: {
+            enabled: !!address && isConnected,
+        }
     });
 
     // Convert date-time string to Unix timestamp in seconds
@@ -242,8 +195,8 @@ const AdminMetadataPage: React.FC = () => {
 
             // Call createEvent function using wagmi
             writeContract({
-                address: CONTRACT_ADDRESS,
-                abi: CONTRACT_ABI,
+                address: EVENT_MANAGER_ADDRESS,
+                abi: eventManagerABI,
                 functionName: 'createEvent',
                 args: [eventTimestamp, metadataHash],
             });
@@ -339,9 +292,7 @@ const AdminMetadataPage: React.FC = () => {
                             <Shield className="w-8 h-8 text-blue-600 mr-2" />
                             <h1 className="text-3xl font-bold text-gray-900">Admin Event Creation</h1>
                         </div>
-
-                        {/* Admin Status Indicator */}
-                        {isConnected && (
+                         {isConnected && (
                             <div className="mb-4">
                                 {adminCheckLoading ? (
                                     <div className="flex items-center justify-center text-gray-500">
@@ -362,8 +313,7 @@ const AdminMetadataPage: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Step Indicator - Only show if user has access */}
-                        {isConnected && isAdmin && (
+                        {isConnected && isAdmin==true && (
                             <div className="flex justify-center items-center space-x-4 text-sm text-gray-500">
                                 <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : ''}`}>
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
@@ -396,8 +346,7 @@ const AdminMetadataPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Admin Access Check */}
-                    {isConnected && !adminCheckLoading && !isAdmin && (
+                    {isConnected && !adminCheckLoading && isAdmin === false && (
                         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-6">
                             <div className="text-center">
                                 <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
@@ -411,7 +360,6 @@ const AdminMetadataPage: React.FC = () => {
                             </div>
                         </div>
                     )}
-
                     {/* Contract Error */}
                     {adminCheckError && (
                         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-6">
