@@ -13,7 +13,6 @@ contract KYCVerifier is SelfVerificationRoot {
     SelfStructs.VerificationConfigV2 public verificationConfig;
 
     event UserVerified(
-        address indexed user,
         ISelfVerificationRoot.GenericDiscloseOutputV2 output,
         bytes userData
     );
@@ -31,7 +30,7 @@ contract KYCVerifier is SelfVerificationRoot {
         ISelfVerificationRoot.GenericDiscloseOutputV2 memory output,
         bytes memory userData
     ) internal override {
-        emit UserVerified(msg.sender, output, userData);
+        emit UserVerified(output, userData);
     }
 
     function getConfigId(

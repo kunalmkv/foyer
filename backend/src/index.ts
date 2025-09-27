@@ -16,7 +16,7 @@ import globalConst from "./const/global.const";
 (async () => {
     try {
         await mongoLib.connect(process.env["MONGO_URL"] as string);
-        ethersLib.initialiseProvider(process.env["RPC_URL"] as string);
+        ethersLib.initialiseProvider(process.env["ETH_SEPOLIA_RPC_URL"] as string);
 
         new Api(portConfig.API);
         new IndexerService(globalConst.ADMIN_MANAGER_ADDRESS, globalConst.EVENT_MANAGER_ADDRESS, globalConst.OFFER_MANAGER_ADDRESS);

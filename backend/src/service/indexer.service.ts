@@ -2,6 +2,7 @@ import {ethers} from 'ethers';
 import _ from 'lodash';
 
 import mongoLib from "../lib/mongo.lib";
+import pinataLib from "../lib/pinata.lib";
 import ethersLib from "../lib/ethers.lib";
 import loggerLib from "../lib/logger.lib";
 
@@ -23,11 +24,11 @@ export class IndexerService {
 
     constructor(adminManagerAddress: string, eventManagerAddress: string, offerManagerAddress: string) {
         try {
-            if ( _.isEmpty(adminManagerAddress) || _.isEmpty(eventManagerAddress) || _.isEmpty(offerManagerAddress)) {
+            if (_.isEmpty(adminManagerAddress) || _.isEmpty(eventManagerAddress) || _.isEmpty(offerManagerAddress)) {
                 throw new Error(`Missing args! adminManagerAddress: ${adminManagerAddress}, eventManagerAddress: ${eventManagerAddress}, offerManagerAddress: ${offerManagerAddress}`);
             }
 
-            this.adminManagerContract= ethersLib.initialiseContract(
+            this.adminManagerContract = ethersLib.initialiseContract(
                 adminManagerAddress,
                 adminManagerAbi
             );
@@ -177,14 +178,19 @@ export class IndexerService {
                 logIndex: event.logIndex
             })
 
-            //TODO: Fetch more details from metadataUri and store in DB
+            const {name, description, venue, category, imageUrl} = await pinataLib.downloadJson(metadataUri);
 
             await mongoLib.updateOne(eventModel,
-                {eventId: eventId.toString()},
+                {id: eventId.toNumber()},
                 {
                     id: eventId.toNumber(),
-                    eventTime: eventTime.toNumber(),
-                    creator : creator.toLowerCase(),
+                    time: eventTime.toNumber(),
+                    creator: creator.toLowerCase(),
+                    name,
+                    description,
+                    venue,
+                    category,
+                    imageUrl,
                     metadataUrl: metadataUri,
                 },
                 {upsert: true}
@@ -230,7 +236,7 @@ export class IndexerService {
                 message: "Detected OfferToSellCreated event",
                 offerId: offerId.toNumber(),
                 eventId: eventId.toNumber(),
-                seller : seller.toLowerCase(),
+                seller: seller.toLowerCase(),
                 ask: ask.toNumber(),
                 collateral: collateral.toNumber(),
                 metadataUri,
@@ -240,7 +246,12 @@ export class IndexerService {
                 logIndex: event.logIndex
             })
 
-            //TODO: Fetch more details from metadataUri and store in DB
+            const {
+                quantity,
+                seatNumbers,
+                seatType,
+                isPhysicalTicketNeededToAttend
+            } = await pinataLib.downloadJson(metadataUri);
 
             await mongoLib.updateOne(offerModel,
                 {id: offerId.toNumber()},
@@ -251,6 +262,10 @@ export class IndexerService {
                     sellerAddress: seller.toLowerCase(),
                     amount: ask.toNumber(),
                     collateral: collateral.toNumber(),
+                    quantity: quantity,
+                    seatNumbers: seatNumbers,
+                    seatType: seatType,
+                    isPhysicalTicketNeededToAttend: isPhysicalTicketNeededToAttend,
                     metadataUrl: metadataUri,
                     status: offerStatusEnum.ACTIVE,
                 },
@@ -276,7 +291,7 @@ export class IndexerService {
                 message: "Detected OfferToSellCreated event",
                 offerId: offerId.toNumber(),
                 eventId: eventId.toNumber(),
-                buyer : buyer.toLowerCase(),
+                buyer: buyer.toLowerCase(),
                 bid: bid.toNumber(),
                 collateral: collateral.toNumber(),
                 metadataUri,
@@ -286,7 +301,12 @@ export class IndexerService {
                 logIndex: event.logIndex
             })
 
-            //TODO: Fetch more details from metadataUri and store in DB
+            const {
+                quantity,
+                seatNumbers,
+                seatType,
+                isPhysicalTicketNeededToAttend
+            } = await pinataLib.downloadJson(metadataUri);
 
             await mongoLib.updateOne(offerModel,
                 {id: offerId.toNumber()},
@@ -297,6 +317,10 @@ export class IndexerService {
                     buyerAddress: buyer.toLowerCase(),
                     amount: bid.toNumber(),
                     collateral: collateral.toNumber(),
+                    quantity: quantity,
+                    seatNumbers: seatNumbers,
+                    seatType: seatType,
+                    isPhysicalTicketNeededToAttend: isPhysicalTicketNeededToAttend,
                     metadataUrl: metadataUri,
                     status: offerStatusEnum.ACTIVE,
                 },
@@ -356,7 +380,7 @@ export class IndexerService {
             loggerLib.logInfo({
                 message: "Detected OfferDisputed event",
                 offerId: offerId.toString(),
-                by : by.toLowerCase(),
+                by: by.toLowerCase(),
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
                 blockHash: event.blockHash,
@@ -383,7 +407,7 @@ export class IndexerService {
             loggerLib.logInfo({
                 message: "Detected OfferSettled event",
                 offerId: offerId.toString(),
-                seller:seller.toLowerCase(),
+                seller: seller.toLowerCase(),
                 buyer: buyer.toLowerCase(),
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,

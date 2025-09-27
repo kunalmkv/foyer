@@ -24,19 +24,19 @@ const eventSchema = new mongoose.Schema({
     },
     name: {
         type: String,
-        required: true,
+        required: false,
     },
     description: {
         type: String,
-        required: true,
+        required: false,
     },
     venue: {
         type: String,
-        required: true,
+        required: false,
     },
     imageUrl: {
         type: String,
-        required: true,
+        required: false,
     },
     metadataUrl: {
         type: String,

@@ -35,9 +35,21 @@ const offerSchema = new mongoose.Schema({
         required: false,
         default: null,
     },
-    metadata: {
-        type: Object,
-        required: true,
+    quantity:{
+        type: Number,
+        required: false
+    },
+    seatNumbers:{
+        type: [String],
+        required: false
+    },
+    seatType:{
+        type: String,
+        required: false
+    },
+    isPhysicalTicketNeededToAttend:{
+        type: Boolean,
+        required: false
     },
     metadataUrl: {
         type: String,

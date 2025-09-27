@@ -26,7 +26,7 @@ function VerificationPage() {
                     scope: "foyer-test",
                     endpoint: "0x5B2bd054c299Bc36C6266a6721D383E085237CA1".toLowerCase(),
                     logoBase64: "https://i.postimg.cc/mrmVf9hm/self.png",
-                    userId: "0x0000000000000000000000000000000000000000",
+                    userId: "0x46d88f2136C94599D6DAe957De8C61f89F933cBA",
                     endpointType: "staging_celo",
                     userIdType: "hex",
                     userDefinedData: "Hello World",
