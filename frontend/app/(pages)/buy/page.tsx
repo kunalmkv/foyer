@@ -9,8 +9,8 @@ import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadCont
 import { parseEther, formatEther } from 'viem';
 import { Copy, Check } from 'lucide-react';
 
-const PYUSD_TOKEN_ADDRESS = '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'
-const ERC20_ABI = [
+export const PYUSD_TOKEN_ADDRESS = '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'
+export const ERC20_ABI = [
     {
         "constant": true,
         "inputs": [{"name": "_owner", "type": "address"}],
@@ -268,7 +268,7 @@ export default function BuyPage() {
         try {
             setCurrentStep(TransactionStep.APPROVING_PYUSD)
             setError(null)
-            
+
             console.log('Approving PYUSD:', {
                 spender: OFFER_MANAGER_ADDRESS,
                 amount: collateral.toString(),
@@ -325,7 +325,7 @@ export default function BuyPage() {
     const createBlockchainOffer = async () => {
         try {
             const { hasBalance, hasAllowance, collateral } = checkBalanceAndAllowance()
-            
+
             console.log('Creating blockchain buy offer:', {
                 collateral: formatEther(collateral),
                 totalBidPrice

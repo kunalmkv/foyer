@@ -32,21 +32,21 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 const resolvedParams = await params;
                 const id = resolvedParams.id;
                 setEventId(id);
-                
+
                 // Fetch event
                 const eventData = await eventService.getEventById(parseInt(id));
                 setEvent(eventData);
-                
+
                 // Fetch offers
                 console.log('Fetching offers for event ID:', id);
-                
+
                 // First try to fetch all offers (no status filter)
                 const allOffersResponse = await offerService.getEventOffers({
                     eventId: id,
                     limit: 50
                 });
                 console.log('All offers response (no status filter):', allOffersResponse);
-                
+
                 // Then try with ACTIVE status
                 const activeOffersResponse = await offerService.getEventOffers({
                     eventId: id,
@@ -54,12 +54,12 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     limit: 50
                 });
                 console.log('Active offers response:', activeOffersResponse);
-                
+
                 // Use active offers if available, otherwise use all offers
                 const allOffers = activeOffersResponse.offers.length > 0 ? activeOffersResponse.offers : allOffersResponse.offers;
                 setOffers(allOffers);
                 console.log('Final offers array:', allOffers);
-                
+
             } catch (error) {
                 console.error('Failed to fetch data:', error);
                 setError('Failed to load event data');
@@ -86,6 +86,8 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     const sellOffers = offers.filter(offer => offer.type === OfferTypeEnum.OFFER_TO_SELL);
     const buyOffers = offers.filter(offer => offer.type === OfferTypeEnum.OFFER_TO_BUY);
 
+    console.log(sellOffers,'sellOffer')
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 flex items-center justify-center">
@@ -102,7 +104,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 flex items-center justify-center">
                 <div className="text-center">
                     <p className="text-red-400 mb-4">{error || 'Event not found'}</p>
-                    <a href="/" className="text-blue-400 hover:text-blue-300 transition-colors">← Back to Home</a>
                 </div>
             </div>
         );
@@ -233,7 +234,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                                         No sell offers available
                                     </div>
                                 )}
-                                
+
                                 {buyOffers.length > 0 && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Buy Requests</span>

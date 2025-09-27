@@ -1,15 +1,70 @@
-import { Shield, Users, TrendingUp, TrendingDown, Clock, MapPin } from "lucide-react";
+import { Shield, Users, TrendingUp, TrendingDown, Clock, MapPin, Loader2, AlertTriangle } from "lucide-react";
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useBalance } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { parseUnits, formatUnits } from 'viem';
 import { Offer } from "@/app/types/Offers";
+import {ERC20_ABI, PYUSD_TOKEN_ADDRESS} from "@/app/(pages)/buy/page";
+import {OFFER_MANAGER_ADDRESS} from "@/app/consts";
+import {offerabi} from "@/app/consts/abi";
 
 interface OfferCardProps {
-    offer: Offer;
+    offer: Offer & { id: number | string }; // Ensure offer has an id field
 }
 
 export const OfferCard = ({ offer }: OfferCardProps) => {
-    // Convert PYUSD wei to readable format (6 decimals)
+    const [isAccepting, setIsAccepting] = useState(false);
+    const [needsApproval, setNeedsApproval] = useState(false);
+    const [step, setStep] = useState<'idle' | 'approving' | 'accepting' | 'completed'>('idle');
+
+    const { address } = useAccount();
+
+    // Get user's PYUSD balance
+    const { data: pyusdBalance } = useBalance({
+        address,
+        token: PYUSD_TOKEN_ADDRESS,
+    });
+
+    // wagmi hooks for contract interaction
+    const {
+        writeContract,
+        data: hash,
+        isPending: isWritePending,
+        error: writeError
+    } = useWriteContract();
+
+    const {
+        isLoading: isConfirming,
+        isSuccess: isConfirmed,
+        error: waitError
+    } = useWaitForTransactionReceipt({
+        hash,
+    });
+
+    // Calculate required amount based on offer type
+    const getRequiredAmount = () => {
+        if (offer.type === 'OFFER_TO_SELL') {
+            // For sell offers, buyer needs to pay the full amount (collateral * 2)
+            // Convert from regular number to PYUSD wei (6 decimals)
+            return (offer.collateral*2)
+        } else {
+            // For buy offers, seller needs to provide collateral
+            // Convert from regular number to PYUSD wei (6 decimals)
+            return (offer.collateral)
+        }
+    };
+
+    // Check if user has sufficient balance
+    const hasSufficientBalance = () => {
+        if (!pyusdBalance) return false;
+        const required = getRequiredAmount();
+        return pyusdBalance.value >= required;
+    };
+
+    // Convert PYUSD wei to readable format (6 decimals) - FIXED
     const formatPrice = (priceInWei: number) => {
         if (!priceInWei || isNaN(priceInWei)) return '0.00';
-        return (priceInWei / Math.pow(10, 6)).toFixed(2);
+        // If priceInWei is already a regular number (not in wei), just format it
+        return priceInWei.toFixed(2);
     };
 
     // Format address for display
@@ -55,9 +110,153 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
         }
     };
 
+    // Handle approval first, then accept offer
+    const handleApproveAndAccept = async () => {
+        if (!offer.id || !address) {
+            console.error('Offer ID and wallet connection are required');
+            return;
+        }
+
+        const requiredAmount = getRequiredAmount();
+
+        try {
+            setIsAccepting(true);
+            setStep('approving');
+
+            // First approve PYUSD spending
+            await writeContract({
+                address: PYUSD_TOKEN_ADDRESS,
+                abi: ERC20_ABI,
+                functionName: 'approve',
+                args: [OFFER_MANAGER_ADDRESS, requiredAmount],
+            });
+
+        } catch (error) {
+            console.error('Error during approval:', error);
+            setIsAccepting(false);
+            setStep('idle');
+        }
+    };
+
+    // Handle accept offer after approval
+    const handleAcceptOffer = async () => {
+        if (!offer.id) {
+            console.error('Offer ID is required');
+            return;
+        }
+
+        try {
+            setStep('accepting');
+            await writeContract({
+                address: OFFER_MANAGER_ADDRESS,
+                abi: offerabi,
+                functionName: "acceptOffer",
+                args: [offer.id],
+            });
+        } catch (error) {
+            console.error('Error accepting offer:', error);
+            setIsAccepting(false);
+            setStep('idle');
+        }
+    };
+
+    // Handle the transaction flow
+    useEffect(() => {
+        if (isConfirmed && step === 'approving') {
+            // Approval confirmed, now accept the offer
+            handleAcceptOffer();
+        } else if (isConfirmed && step === 'accepting') {
+            // Accept confirmed, transaction complete
+            setStep('completed');
+            setIsAccepting(false);
+        } else if (writeError || waitError) {
+            // Reset on error
+            setIsAccepting(false);
+            setStep('idle');
+        }
+    }, [isConfirmed, step, writeError, waitError]);
+
+    // Determine button state and text
+    const getButtonState = () => {
+        if (!address) {
+            return {
+                disabled: true,
+                text: 'Connect Wallet',
+                className: 'bg-gray-600 cursor-not-allowed'
+            };
+        }
+
+        if (!hasSufficientBalance()) {
+            return {
+                disabled: true,
+                text: 'Insufficient PYUSD',
+                className: 'bg-red-600 cursor-not-allowed'
+            };
+        }
+
+        if (step === 'approving' || (isWritePending && step === 'approving')) {
+            return {
+                disabled: true,
+                text: 'Approving PYUSD...',
+                className: 'bg-blue-600 cursor-not-allowed'
+            };
+        }
+
+        if (step === 'accepting' || (isWritePending && step === 'accepting')) {
+            return {
+                disabled: true,
+                text: 'Accepting Offer...',
+                className: 'bg-blue-600 cursor-not-allowed'
+            };
+        }
+
+        if (isConfirming) {
+            return {
+                disabled: true,
+                text: 'Processing...',
+                className: 'bg-blue-600 cursor-not-allowed'
+            };
+        }
+
+        if (step === 'completed') {
+            return {
+                disabled: true,
+                text: 'Accepted!',
+                className: 'bg-green-600 cursor-not-allowed'
+            };
+        }
+
+        if (offer.status !== 'ACTIVE') {
+            return {
+                disabled: true,
+                text: 'Not Available',
+                className: 'bg-gray-600 cursor-not-allowed'
+            };
+        }
+
+        // Check if user is trying to accept their own offer
+        const isOwnOffer = (offer.type === 'OFFER_TO_SELL' && offer.sellerAddress === address) ||
+            (offer.type === 'OFFER_TO_BUY' && offer.sellerAddress === address);
+
+        if (isOwnOffer) {
+            return {
+                disabled: true,
+                text: 'Your Offer',
+                className: 'bg-gray-600 cursor-not-allowed'
+            };
+        }
+
+        return {
+            disabled: false,
+            text: offer.type === 'OFFER_TO_SELL' ? 'Buy Now' : 'Sell Now',
+            className: 'bg-blue-600 hover:bg-blue-700'
+        };
+    };
+
     const typeInfo = getTypeInfo(offer.type);
     const TypeIcon = typeInfo.icon;
-
+    const buttonState = getButtonState();
+   const requiredAmount = getRequiredAmount();
     return (
         <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-2xl border border-gray-700 hover:shadow-3xl transition-all duration-300 hover:border-blue-500/50">
             <div className="flex justify-between items-start mb-4">
@@ -98,13 +297,61 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
 
                 <div className="text-right">
                     <div className="text-2xl font-bold text-white mb-1">
-                        {formatPrice(offer.collateral * 2)} PYUSD
+                        {(offer.collateral/10**6 * 2)} PYUSD
                     </div>
                     <div className="text-sm text-gray-300 mb-3">per ticket</div>
 
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors">
-                        {offer.type === 'OFFER_TO_SELL' ? 'Buy Now' : 'Sell Now'}
+                    <button
+                        onClick={handleApproveAndAccept}
+                        disabled={buttonState.disabled}
+                        className={`w-full ${buttonState.className} text-white font-bold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2`}
+                    >
+                        {(isWritePending || isConfirming) && (
+                            <Loader2 size={16} className="animate-spin" />
+                        )}
+                        {buttonState.text}
                     </button>
+
+                    {/* Balance Info */}
+                    {address && pyusdBalance && (
+                        <div className="text-gray-400 text-xs mt-2">
+                            Balance: {formatUnits(pyusdBalance.value, 6)} PYUSD
+                        </div>
+                    )}
+
+                    {/* Required Amount Info */}
+                    {address && (
+                        <div className="text-gray-400 text-xs">
+                            Required: {requiredAmount/10**6} PYUSD
+                        </div>
+                    )}
+
+                    {/* Insufficient Balance Warning */}
+                    {address && !hasSufficientBalance() && (
+                        <div className="flex items-center gap-1 text-red-400 text-xs mt-2">
+                            <AlertTriangle size={12} />
+                            <span>Insufficient balance</span>
+                        </div>
+                    )}
+
+                    {/* Error Messages */}
+                    {writeError && (
+                        <div className="text-red-400 text-xs mt-2">
+                            Error: {writeError.message}
+                        </div>
+                    )}
+                    {waitError && (
+                        <div className="text-red-400 text-xs mt-2">
+                            Transaction failed
+                        </div>
+                    )}
+
+                    {/* Transaction Hash */}
+                    {hash && (
+                        <div className="text-gray-400 text-xs mt-2">
+                            Tx: {formatAddress(hash)}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -133,7 +380,6 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                     </div>
                 </div>
             </div>
-
 
             {/* Timestamp */}
             <div className="border-t border-gray-600 pt-3 mt-3">
