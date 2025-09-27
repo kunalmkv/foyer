@@ -5,8 +5,33 @@ import { baseurl } from "@/app/consts"
 import {OFFER_MANAGER_ADDRESS} from "@/app/consts";
 import {offerabi} from "@/app/consts/abi";
 import {eventService} from "@/app/service/events.service";
-import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
-import { parseEther } from 'viem';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi';
+import { parseEther, formatEther } from 'viem';
+
+const PYUSD_TOKEN_ADDRESS = '0xCaC524BcA292aaade2DF8A05cC58F0a65B1B3bB9'
+const ERC20_ABI = [
+    {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function"
+    },
+    {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}, {"name": "_spender", "type": "address"}],
+        "name": "allowance",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [{"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}],
+        "name": "approve",
+        "outputs": [{"name": "", "type": "bool"}],
+        "type": "function"
+    }
+] as const;
 
 export interface Events {
     _id: string;
@@ -27,6 +52,13 @@ interface TicketFormData {
     isPhysicalTicketNeededToAttend: boolean
 }
 
+enum TransactionStep {
+    UPLOADING_METADATA = 'UPLOADING_METADATA',
+    APPROVING_PYUSD = 'APPROVING_PYUSD',
+    CREATING_OFFER = 'CREATING_OFFER',
+    COMPLETED = 'COMPLETED'
+}
+
 export default function SellPage() {
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [error, setError] = useState<string | null>(null)
@@ -42,13 +74,45 @@ export default function SellPage() {
     const [showPriceModal, setShowPriceModal] = useState<boolean>(false)
     const [totalAskPrice, setTotalAskPrice] = useState<string>('')
     const [pendingTicketData, setPendingTicketData] = useState<TicketFormData | null>(null)
+    const [currentStep, setCurrentStep] = useState<TransactionStep>(TransactionStep.UPLOADING_METADATA)
+    const [pyusdBalance, setPyusdBalance] = useState<string>('0')
+    const [pyusdAllowance, setPyusdAllowance] = useState<bigint>(0n)
 
     // Wagmi hooks
     const { address, isConnected } = useAccount()
-    const { writeContract, data: hash, isPending, error: contractError } = useWriteContract()
+    const { writeContract, data: hash, isPending, error: contractError, reset } = useWriteContract()
     const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
         hash,
     })
+
+    // Read PYUSD balance
+    const { data: balanceData, refetch: refetchBalance } = useReadContract({
+        address: PYUSD_TOKEN_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'balanceOf',
+        args: address ? [address] : undefined,
+        query: { enabled: !!address }
+    })
+    console.log('pusd balance',balanceData)
+
+    // Read PYUSD allowance
+    const { data: allowanceData, refetch: refetchAllowance } = useReadContract({
+        address: PYUSD_TOKEN_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'allowance',
+        args: address ? [address, OFFER_MANAGER_ADDRESS] : undefined,
+        query: { enabled: !!address }
+    })
+
+    // Update balance and allowance when data changes
+    useEffect(() => {
+        if (balanceData) {
+            setPyusdBalance(formatEther(balanceData as bigint))
+        }
+        if (allowanceData) {
+            setPyusdAllowance(allowanceData as bigint)
+        }
+    }, [balanceData, allowanceData])
 
     // Fetch events on component mount
     useEffect(() => {
@@ -86,26 +150,75 @@ export default function SellPage() {
     // Handle transaction confirmation
     useEffect(() => {
         if (isConfirmed) {
-            setSuccess(true)
-            setShowPriceModal(false)
-            setPendingTicketData(null)
-            setTotalAskPrice('')
-            setMetadataUri('')
-            setIsLoading(false)
-            // Reset form
-            setSeatNumbers([''])
-            setSelectedEvent(null)
-            setSearchQuery('')
+            if (currentStep === TransactionStep.APPROVING_PYUSD) {
+                // Approval confirmed, now create the offer
+                setCurrentStep(TransactionStep.CREATING_OFFER)
+                refetchAllowance() // Refresh allowance data
+                createOfferTransaction()
+            } else if (currentStep === TransactionStep.CREATING_OFFER) {
+                // Offer creation confirmed
+                setCurrentStep(TransactionStep.COMPLETED)
+                setSuccess(true)
+                setShowPriceModal(false)
+                setPendingTicketData(null)
+                setTotalAskPrice('')
+                setMetadataUri('')
+                setIsLoading(false)
+                // Reset form
+                setSeatNumbers([''])
+                setSelectedEvent(null)
+                setSearchQuery('')
+                refetchBalance() // Refresh balance after transaction
+            }
+            reset() // Reset wagmi state for next transaction
         }
-    }, [isConfirmed])
+    }, [isConfirmed, currentStep])
 
     // Handle contract errors
     useEffect(() => {
         if (contractError) {
-            setError(contractError.message || 'Blockchain transaction failed')
+            console.error('Contract error details:', contractError)
+            let errorMessage = 'Blockchain transaction failed'
+
+            // Parse common error messages
+            if (contractError.message.includes('insufficient')) {
+                errorMessage = 'Insufficient balance or allowance'
+            } else if (contractError.message.includes('transfer')) {
+                errorMessage = 'Token transfer failed - check balance and approval'
+            } else if (contractError.message.includes('Ask must be > 0')) {
+                errorMessage = 'Ask price must be greater than 0'
+            } else if (contractError.message.includes('Event does not exist')) {
+                errorMessage = 'Selected event does not exist'
+            }
+
+            setError(errorMessage)
             setIsLoading(false)
+            setCurrentStep(TransactionStep.UPLOADING_METADATA)
         }
     }, [contractError])
+
+    // Calculate required collateral
+    const getRequiredCollateral = (): bigint => {
+        if (!totalAskPrice) return BigInt(0)
+        try {
+            return parseEther(totalAskPrice) / BigInt(2) // Half of ask price
+        } catch {
+            return BigInt(0)
+        }
+    }
+
+    // Check if user has sufficient balance and allowance
+    const checkBalanceAndAllowance = (): { hasBalance: boolean; hasAllowance: boolean; collateral: bigint } => {
+        const collateral = getRequiredCollateral()
+        const userBalance = balanceData as bigint || BigInt(0)
+        const userAllowance = allowanceData as bigint || BigInt(0)
+
+        return {
+            hasBalance: userBalance >= collateral,
+            hasAllowance: userAllowance >= collateral,
+            collateral
+        }
+    }
 
     // Add new seat number input
     const addSeatNumber = () => {
@@ -143,40 +256,90 @@ export default function SellPage() {
         }
     }
 
-    // Create blockchain offer
+    // Approve PYUSD spending
+    const approvePyusd = async () => {
+        const { collateral } = checkBalanceAndAllowance()
+
+        try {
+            setCurrentStep(TransactionStep.APPROVING_PYUSD)
+            writeContract({
+                address: PYUSD_TOKEN_ADDRESS,
+                abi: ERC20_ABI,
+                functionName: 'approve',
+                args: [OFFER_MANAGER_ADDRESS, collateral],
+            })
+        } catch (error: any) {
+            setError('Failed to approve PYUSD spending: ' + (error.message || 'Unknown error'))
+            setIsLoading(false)
+            setCurrentStep(TransactionStep.UPLOADING_METADATA)
+        }
+    }
+
+    // Create the actual offer transaction
+    const createOfferTransaction = async () => {
+        if (!pendingTicketData || !selectedEvent || !metadataUri) return
+
+        try {
+            writeContract({
+                address: OFFER_MANAGER_ADDRESS,
+                abi: offerabi,
+                functionName: 'createOfferToSell',
+                args: [
+                    BigInt(selectedEvent.id), // _eventId
+                    parseEther(totalAskPrice), // _ask (convert ETH to wei)
+                    metadataUri // _metadataUri
+                ],
+            })
+        } catch (error: any) {
+            setError('Failed to create offer: ' + (error.message || 'Unknown error'))
+            setIsLoading(false)
+            setCurrentStep(TransactionStep.UPLOADING_METADATA)
+        }
+    }
+
+    // Create blockchain offer with approval flow
     const createBlockchainOffer = async () => {
         if (!pendingTicketData || !selectedEvent || !isConnected || !metadataUri) return
 
         try {
             setIsLoading(true)
+            setError(null)
 
             // Validate price is set and valid
             if (!totalAskPrice || parseFloat(totalAskPrice) <= 0) {
                 throw new Error('Please set a valid total ask price')
             }
 
-            // Create offer using the smart contract function
-             writeContract({
-                address: OFFER_MANAGER_ADDRESS,
-                abi: offerabi,
-                functionName: 'createOfferToSell',
-                args: [
-                    BigInt(selectedEvent.id), // _eventId
-                    (totalAskPrice), // _ask (total price in wei)
-                    metadataUri // _metadataUri
-                ],
-            })
+            // Check balance and allowance
+            const { hasBalance, hasAllowance, collateral } = checkBalanceAndAllowance()
+
+            if (!hasBalance) {
+                throw new Error(`Insufficient PYUSD balance. Required: ${formatEther(collateral)} PYUSD, Available: ${pyusdBalance} PYUSD`)
+            }
+
+            // If allowance is sufficient, create offer directly
+            if (hasAllowance) {
+                setCurrentStep(TransactionStep.CREATING_OFFER)
+                createOfferTransaction()
+            } else {
+                // Otherwise, approve first
+                await approvePyusd()
+            }
+
         } catch (error: any) {
             setError(error.message || 'Failed to create blockchain offer')
             setIsLoading(false)
+            setCurrentStep(TransactionStep.UPLOADING_METADATA)
         }
     }
 
+    // Form submission handler
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault()
         setIsLoading(true)
         setError(null)
         setSuccess(false)
+        setCurrentStep(TransactionStep.UPLOADING_METADATA)
 
         try {
             if (!selectedEvent) {
@@ -243,6 +406,23 @@ export default function SellPage() {
             setError(error.message || 'An error occurred')
             console.error('Form submission error:', error)
             setIsLoading(false)
+            setCurrentStep(TransactionStep.UPLOADING_METADATA)
+        }
+    }
+
+    // Get current step display text
+    const getStepText = (): string => {
+        switch (currentStep) {
+            case TransactionStep.UPLOADING_METADATA:
+                return 'Uploading Metadata...'
+            case TransactionStep.APPROVING_PYUSD:
+                return isPending ? 'Approving PYUSD...' : isConfirming ? 'Confirming Approval...' : 'Approve PYUSD'
+            case TransactionStep.CREATING_OFFER:
+                return isPending ? 'Creating Offer...' : isConfirming ? 'Confirming Offer...' : 'Create Offer'
+            case TransactionStep.COMPLETED:
+                return 'Completed!'
+            default:
+                return 'Processing...'
         }
     }
 
@@ -257,6 +437,11 @@ export default function SellPage() {
                         <p className="mt-2 text-center text-sm text-gray-600">
                             Fill out the details to list your tickets for sale
                         </p>
+                        {isConnected && (
+                            <div className="mt-2 text-center text-xs text-gray-500">
+                                PYUSD Balance: {pyusdBalance} PYUSD
+                            </div>
+                        )}
                     </div>
 
                     {error && (
@@ -450,7 +635,7 @@ export default function SellPage() {
                             disabled={isLoading || !selectedEvent || !isConnected}
                             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200"
                         >
-                            {isLoading ? (
+                            {isLoading && currentStep === TransactionStep.UPLOADING_METADATA ? (
                                 <div className="flex items-center">
                                     <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -478,6 +663,8 @@ export default function SellPage() {
                                         onClick={() => {
                                             setShowPriceModal(false)
                                             setIsLoading(false)
+                                            setCurrentStep(TransactionStep.UPLOADING_METADATA)
+                                            reset()
                                         }}
                                         className="text-gray-400 hover:text-gray-600"
                                     >
@@ -496,13 +683,13 @@ export default function SellPage() {
 
                                 <div className="mb-4">
                                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                                        Total Ask Price (ETH)
+                                        Total Ask Price (PYUSD)
                                     </label>
                                     <input
                                         type="number"
                                         step="0.001"
                                         min="0"
-                                        placeholder="0.5"
+                                        placeholder="100.0"
                                         value={totalAskPrice}
                                         onChange={(e) => setTotalAskPrice(e.target.value)}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -510,11 +697,46 @@ export default function SellPage() {
                                     <p className="mt-1 text-xs text-gray-500">
                                         Enter the total price for all {pendingTicketData.quantity} ticket(s)
                                     </p>
+                                    {totalAskPrice && (
+                                        <p className="mt-1 text-xs text-gray-600">
+                                            Required collateral: {formatEther(getRequiredCollateral())} PYUSD (50% of ask price)
+                                        </p>
+                                    )}
                                 </div>
+
+                                {/* Balance and allowance info */}
+                                {totalAskPrice && (
+                                    <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-md text-xs">
+                                        <div className="flex justify-between">
+                                            <span>Your PYUSD Balance:</span>
+                                            <span className={parseFloat(pyusdBalance) >= parseFloat(formatEther(getRequiredCollateral())) ? 'text-green-600' : 'text-red-600'}>
+                                                {pyusdBalance} PYUSD
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span>Current Allowance:</span>
+                                            <span className={pyusdAllowance >= getRequiredCollateral() ? 'text-green-600' : 'text-orange-600'}>
+                                                {formatEther(pyusdAllowance)} PYUSD
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {error && (
                                     <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
                                         <p className="text-sm text-red-600">{error}</p>
+                                    </div>
+                                )}
+
+                                {/* Transaction status */}
+                                {isLoading && currentStep !== TransactionStep.UPLOADING_METADATA && (
+                                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                                        <p className="text-sm text-yellow-800">{getStepText()}</p>
+                                        {hash && (
+                                            <p className="text-xs text-yellow-700 mt-1">
+                                                Transaction: {hash.slice(0, 10)}...{hash.slice(-8)}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
 
@@ -524,27 +746,22 @@ export default function SellPage() {
                                             setShowPriceModal(false)
                                             setIsLoading(false)
                                             setError(null)
+                                            setCurrentStep(TransactionStep.UPLOADING_METADATA)
+                                            reset()
                                         }}
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        disabled={isLoading}
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                                     >
                                         Back
                                     </button>
                                     <button
                                         onClick={createBlockchainOffer}
-                                        disabled={isPending || isConfirming || !totalAskPrice}
+                                        disabled={isPending || isConfirming || !totalAskPrice || isLoading}
                                         className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {isPending ? 'Creating Offer...' : isConfirming ? 'Confirming...' : 'Create Offer'}
+                                        {getStepText()}
                                     </button>
                                 </div>
-
-                                {hash && (
-                                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                                        <p className="text-sm text-yellow-800">
-                                            Transaction submitted! Hash: {hash.slice(0, 10)}...
-                                        </p>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
