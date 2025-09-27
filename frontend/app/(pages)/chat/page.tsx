@@ -6,14 +6,13 @@ import { Chat } from '@/app/types/Chat';
 import { chatService } from '@/app/service/chat.service';
 import { ChatList } from './components/ChatList';
 import { ChatWindow } from './components/ChatWindow';
-import { RefreshCw } from 'lucide-react';
 
 export default function ChatPage() {
     const [chats, setChats] = useState<Chat[]>([]);
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [socketConnected, setSocketConnected] = useState(false);
+    const [backgroundRefreshing, setBackgroundRefreshing] = useState(false);
     const { address, isConnected } = useAccount();
 
     useEffect(() => {
@@ -23,24 +22,30 @@ export default function ChatPage() {
         }
     }, [isConnected, address]);
 
-    // Check socket connection status periodically
+    // Auto-refresh chats periodically
     useEffect(() => {
-        const checkConnection = () => {
-            setSocketConnected(chatService.isSocketConnected());
+        if (!isConnected || !address) return;
+
+        const autoRefresh = async () => {
+            try {
+                await loadChats(false); // Don't show loading spinner for auto-refresh
+            } catch (error) {
+                console.error('Auto-refresh failed:', error);
+            }
         };
 
-        checkConnection(); // Check immediately
-        const interval = setInterval(checkConnection, 2000); // Check every 2 seconds
+        // Auto-refresh every 15 seconds for better responsiveness
+        const interval = setInterval(autoRefresh, 15000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [isConnected, address]);
 
     // Refresh chats when the page becomes visible (user returns to tab/page)
     useEffect(() => {
         const handleVisibilityChange = async () => {
             if (!document.hidden && isConnected && address) {
                 console.log('Page became visible, refreshing chats...');
-                await loadChats();
+                await loadChats(false); // Don't show loading spinner when returning to page
             }
         };
 
@@ -58,7 +63,7 @@ export default function ChatPage() {
         const handleNewMessage = async () => {
             console.log('New message received, refreshing chat list...');
             // Refresh chat list when new messages arrive
-            await loadChats();
+            await loadChats(false); // Don't show loading spinner for new message refresh
         };
 
         chatService.onNewMessage(handleNewMessage);
@@ -67,11 +72,16 @@ export default function ChatPage() {
         // In a real implementation, you'd want to add a removeListener method
     }, [isConnected, address]);
 
-    const loadChats = async () => {
+    const loadChats = async (showLoading: boolean = true) => {
         if (!address) return;
         
         try {
-            setLoading(true);
+            if (showLoading) {
+                setLoading(true);
+            } else {
+                setBackgroundRefreshing(true);
+            }
+            
             let userChats = await chatService.getChats(address);
             
             // Log the number of chats received
@@ -79,10 +89,22 @@ export default function ChatPage() {
             
             // Ensure userChats is always an array
             setChats(userChats || []);
+            
+            // Clear any previous errors on successful load
+            if (error) {
+                setError(null);
+            }
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to load chats');
+            console.error('Failed to load chats:', err);
+            if (showLoading) {
+                setError(err instanceof Error ? err.message : 'Failed to load chats');
+            }
         } finally {
-            setLoading(false);
+            if (showLoading) {
+                setLoading(false);
+            } else {
+                setBackgroundRefreshing(false);
+            }
         }
     };
 
@@ -132,7 +154,7 @@ export default function ChatPage() {
                 <div className="text-center">
                     <p className="text-red-400 mb-4">{error}</p>
                     <button 
-                        onClick={loadChats}
+                        onClick={() => loadChats(true)}
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Try Again
@@ -147,30 +169,17 @@ export default function ChatPage() {
             <div className="container mx-auto px-8 py-8">
                 {/* Header */}
                 <div className="mb-8 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-4xl font-bold text-white mb-2">Messages</h1>
-                        <div className="flex items-center gap-3">
-                            <p className="text-gray-300">Chat with buyers and sellers</p>
-                            <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${socketConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                                <span className={`text-xs ${socketConnected ? 'text-green-400' : 'text-red-400'}`}>
-                                    {socketConnected ? 'Connected' : 'Disconnected'}
-                                </span>
-                            </div>
+                    <h1 className="text-4xl font-bold text-white">Messages</h1>
+                    {backgroundRefreshing && (
+                        <div className="flex items-center gap-2 text-gray-400">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                            <span className="text-sm">Updating...</span>
                         </div>
-                    </div>
-                    <button
-                        onClick={loadChats}
-                        disabled={loading}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                        Refresh
-                    </button>
+                    )}
                 </div>
 
                 {/* Chat Interface */}
-                <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700 overflow-hidden" style={{ height: 'calc(100vh - 220px)', minHeight: '500px' }}>
+                <div className="bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700 overflow-hidden" style={{ height: 'calc(100vh - 180px)', minHeight: '500px' }}>
                     <div className="flex h-full">
                         {/* Chat List - Hidden on mobile when chat is selected */}
                         <div className={`${selectedChat ? 'hidden lg:block' : 'block'} lg:w-1/3`}>
