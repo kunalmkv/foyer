@@ -25,6 +25,18 @@ async function findOne(model: any, filter: object) {
     }
 }
 
+async function findOneWithSelect(model: any, filter: object,select:object) {
+    try {
+        if (_.isNil(model) || _.isNil(filter) || _.isNil(select)) {
+            throw new Error(`Missing args! model: ${model}, filter: ${filter}, select: ${select}`)
+        }
+
+        return await model.findOne(filter).select(select);
+    } catch (error) {
+        throw error
+    }
+}
+
 async function find(model: any, filter: object) {
     try {
         if (_.isNil(model) || _.isNil(filter)) {
@@ -133,5 +145,6 @@ export default {
     updateOne: updateOne,
     findWithSort:findWithSort,
     findWithSkipLimit:findWithSkipLimit,
+    findOneWithSelect:findOneWithSelect,
     findWithSkipLimitWithSort:findWithSkipLimitWithSort
 }
