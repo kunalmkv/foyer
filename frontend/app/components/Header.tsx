@@ -2,7 +2,7 @@
 
 import { User, Wallet, LogIn } from "lucide-react";
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-
+import Link from "next/link";
 import Image from 'next/image';
 
 export const Header = () => {
