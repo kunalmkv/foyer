@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    experimental: {
-        turbopack: true,
-    },
+
     typescript: {
         // Skip type checking during build
         ignoreBuildErrors: true,
