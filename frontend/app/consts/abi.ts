@@ -1,131 +1,188 @@
 export const offerabi=[
     {
         "inputs": [
-            {
-                "internalType": "address",
-                "name": "_account",
-                "type": "address"
-            }
+            { "internalType": "address", "name": "_pyusd", "type": "address" },
+            { "internalType": "address", "name": "_eventManager", "type": "address" },
+            { "internalType": "address", "name": "_adminManager", "type": "address" }
         ],
-        "name": "addAdmin",
-        "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "inputs": [],
+        "name": "ADMIN_MANAGER",
+        "outputs": [{ "internalType": "contract IAdminManager", "name": "", "type": "address" }],
+        "stateMutability": "view",
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "_account",
-                "type": "address"
-            }
-        ],
-        "name": "removeAdmin",
-        "outputs": [],
-        "stateMutability": "nonpayable",
+        "inputs": [],
+        "name": "EVENT_MANAGER",
+        "outputs": [{ "internalType": "contract IEventManager", "name": "", "type": "address" }],
+        "stateMutability": "view",
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "admin",
+        "inputs": [],
+        "name": "OFFER_DISPUTE_PERIOD",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "PYUSD",
+        "outputs": [{ "internalType": "contract IERC20", "name": "", "type": "address" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "offerCount",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "name": "offers",
         "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
+            { "internalType": "uint256", "name": "eventId", "type": "uint256" },
+            { "internalType": "address", "name": "seller", "type": "address" },
+            { "internalType": "address", "name": "buyer", "type": "address" },
+            { "internalType": "uint256", "name": "amount", "type": "uint256" },
+            { "internalType": "uint256", "name": "collateral", "type": "uint256" },
+            { "internalType": "string", "name": "metadataUri", "type": "string" },
+            { "internalType": "enum OfferManager.OfferType", "name": "offerType", "type": "uint8" },
+            { "internalType": "enum OfferManager.OfferStatus", "name": "status", "type": "uint8" }
         ],
         "stateMutability": "view",
         "type": "function"
     },
     {
         "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_eventTime",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
-                "name": "_metadataUri",
-                "type": "string"
-            }
+            { "internalType": "uint256", "name": "_eventId", "type": "uint256" },
+            { "internalType": "uint256", "name": "_ask", "type": "uint256" },
+            { "internalType": "string", "name": "_metadataUri", "type": "string" }
         ],
-        "name": "createEvent",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
+        "name": "createOfferToSell",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
         "stateMutability": "nonpayable",
         "type": "function"
     },
     {
-        "anonymous": false,
         "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "account",
-                "type": "address"
-            }
+            { "internalType": "uint256", "name": "_eventId", "type": "uint256" },
+            { "internalType": "uint256", "name": "_bid", "type": "uint256" },
+            { "internalType": "string", "name": "_metadataUri", "type": "string" }
         ],
-        "name": "AdminAdded",
+        "name": "createOfferToBuy",
+        "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{ "internalType": "uint256", "name": "_offerId", "type": "uint256" }],
+        "name": "acceptOffer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{ "internalType": "uint256", "name": "_offerId", "type": "uint256" }],
+        "name": "cancelOffer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{ "internalType": "uint256", "name": "_offerId", "type": "uint256" }],
+        "name": "settleOffer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [{ "internalType": "uint256", "name": "_offerId", "type": "uint256" }],
+        "name": "raiseDispute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            { "internalType": "uint256", "name": "_offerId", "type": "uint256" },
+            { "internalType": "bool", "name": "_inFavorOfSeller", "type": "bool" }
+        ],
+        "name": "resolveDispute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+
+    /* ---------------- EVENTS ---------------- */
+    {
+        "anonymous": false,
+        "inputs": [{ "indexed": true, "internalType": "uint256", "name": "offerId", "type": "uint256" }],
+        "name": "OfferCancelled",
         "type": "event"
     },
     {
         "anonymous": false,
         "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "account",
-                "type": "address"
-            }
+            { "indexed": true, "internalType": "uint256", "name": "offerId", "type": "uint256" },
+            { "indexed": false, "internalType": "address", "name": "by", "type": "address" }
         ],
-        "name": "AdminRemoved",
+        "name": "OfferDisputed",
         "type": "event"
     },
     {
         "anonymous": false,
         "inputs": [
-            {
-                "indexed": true,
-                "internalType": "uint256",
-                "name": "eventId",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "address",
-                "name": "creator",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "eventTime",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "string",
-                "name": "metadataUri",
-                "type": "string"
-            }
+            { "indexed": true, "internalType": "uint256", "name": "offerId", "type": "uint256" },
+            { "indexed": false, "internalType": "address", "name": "buyer", "type": "address" }
         ],
-        "name": "EventCreated",
+        "name": "OfferAccepted",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            { "indexed": true, "internalType": "uint256", "name": "offerId", "type": "uint256" },
+            { "indexed": false, "internalType": "address", "name": "seller", "type": "address" },
+            { "indexed": false, "internalType": "address", "name": "buyer", "type": "address" }
+        ],
+        "name": "OfferSettled",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            { "indexed": true, "internalType": "uint256", "name": "offerId", "type": "uint256" },
+            { "indexed": true, "internalType": "uint256", "name": "eventId", "type": "uint256" },
+            { "indexed": true, "internalType": "address", "name": "buyer", "type": "address" },
+            { "indexed": false, "internalType": "uint256", "name": "bid", "type": "uint256" },
+            { "indexed": false, "internalType": "uint256", "name": "collateral", "type": "uint256" },
+            { "indexed": false, "internalType": "string", "name": "metadataUri", "type": "string" }
+        ],
+        "name": "OfferToBuyCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            { "indexed": true, "internalType": "uint256", "name": "offerId", "type": "uint256" },
+            { "indexed": true, "internalType": "uint256", "name": "eventId", "type": "uint256" },
+            { "indexed": true, "internalType": "address", "name": "seller", "type": "address" },
+            { "indexed": false, "internalType": "uint256", "name": "ask", "type": "uint256" },
+            { "indexed": false, "internalType": "uint256", "name": "collateral", "type": "uint256" },
+            { "indexed": false, "internalType": "string", "name": "metadataUri", "type": "string" }
+        ],
+        "name": "OfferToSellCreated",
         "type": "event"
     }
 ]
+
 
 export const eventManagerABI=[
     {

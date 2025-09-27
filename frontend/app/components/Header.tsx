@@ -2,32 +2,23 @@
 
 import { User, Wallet } from "lucide-react";
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import Image from 'next/image';
 
 export const Header = () => {
     return (
-        <nav className="flex w-full bg-[#F5EFE6] backdrop-blur-sm justify-between items-center px-8 py-4 shadow-sm border-b border-gray-100">
+        <nav className="flex w-full bg-gray-900/95 backdrop-blur-md justify-between items-center px-8 py-6 shadow-2xl border-b border-gray-700/50">
             <div className="flex gap-8 items-center">
-                <Image
-                    src="/foyer_vector_logo.png"
-                    alt="Foyer Logo"
-                    width={120}
-                    height={60}
-                    className="w-30 h-15 object-contain"
-                />
-                <div className="hidden md:flex gap-6">
-                    <a href="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Events</a>
-                    <a href="/proposals" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Proposals</a>
-                    <a href="/chat" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Messages</a>
-                    <a href="/sell" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Sell</a>
-                    <a href="/admin" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">Admin</a>
+                <h1 className="font-bold text-3xl bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">TicketHub</h1>
+                <div className="hidden md:flex gap-8">
+                    <a href="#" className="text-gray-300 hover:text-blue-400 transition-colors font-medium hover:scale-105 transform duration-200">🏈 Sports</a>
+                    <a href="#" className="text-gray-300 hover:text-purple-400 transition-colors font-medium hover:scale-105 transform duration-200">🎤 Concerts</a>
+                    <a href="#" className="text-gray-300 hover:text-pink-400 transition-colors font-medium hover:scale-105 transform duration-200">🎭 Theater</a>
+                    <a href="#" className="text-gray-300 hover:text-green-400 transition-colors font-medium hover:scale-105 transform duration-200">🌆 Top Cities</a>
                 </div>
             </div>
             <div className="flex gap-6 items-center">
-                <a href="/" className="text-gray-700 hover:text-blue-600 transition-colors">Explore</a>
-                <a href="/proposals" className="text-gray-700 hover:text-blue-600 transition-colors">Proposals</a>
-                <a href="/chat" className="text-gray-700 hover:text-blue-600 transition-colors">Messages</a>
-                <a href="#" className="text-gray-700 hover:text-blue-600 transition-colors">My Tickets</a>
+                <a href="#" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Explore</a>
+                <a href="#" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Sell</a>
+                <a href="#" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">My Tickets</a>
 
                 <ConnectButton.Custom>
                     {({
@@ -65,7 +56,7 @@ export const Header = () => {
                                         return (
                                             <button
                                                 onClick={openConnectModal}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
                                             >
                                                 <Wallet size={16} />
                                                 Connect Wallet
@@ -77,7 +68,7 @@ export const Header = () => {
                                         return (
                                             <button
                                                 onClick={openChainModal}
-                                                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                                                className="bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-200 flex items-center gap-2 shadow-lg"
                                             >
                                                 Wrong network
                                             </button>
@@ -88,7 +79,7 @@ export const Header = () => {
                                         <div className="flex items-center gap-3">
                                             <button
                                                 onClick={openChainModal}
-                                                className="bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+                                                className="bg-gray-800 text-gray-200 px-4 py-2 rounded-xl hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 border border-gray-600"
                                             >
                                                 {chain.hasIcon && (
                                                     <div
@@ -108,7 +99,7 @@ export const Header = () => {
 
                                             <button
                                                 onClick={openAccountModal}
-                                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105"
                                             >
                                                 <User size={16} />
                                                 {account.displayName}

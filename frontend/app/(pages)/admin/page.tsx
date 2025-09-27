@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, ArrowRight, CheckCircle, AlertCircle, Loader, Calendar, Shield } from 'lucide-react';
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi';
-import { parseUnits } from 'viem';
-import {baseurl} from "@/app/consts";
-
+import {ADMIN_MANAGER_ADDRESS, baseurl, EVENT_MANAGER_ADDRESS} from "@/app/consts";
+import {eventManagerABI,adminManagerABI} from "@/app/consts/abi";
+import { DatePicker } from "@/app/components/DatePicker";
 interface FormData {
     name: string;
     description: string;
@@ -26,55 +26,8 @@ interface FormErrors {
 
 type Step = 1 | 2;
 
-// Contract configuration - Replace with your actual contract address
-const CONTRACT_ADDRESS = '0x7bc48Ccf09989c696AeB7BaFEBB3aBb6FB410559' as const;
 
-// Contract ABI for admin and createEvent functions
-const CONTRACT_ABI = [
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "admin",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "_eventTime",
-                "type": "uint256"
-            },
-            {
-                "internalType": "string",
-                "name": "_metadataUri",
-                "type": "string"
-            }
-        ],
-        "name": "createEvent",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    }
-] as const;
+
 
 const AdminMetadataPage: React.FC = () => {
     const [currentStep, setCurrentStep] = useState<Step>(1);
@@ -110,18 +63,19 @@ const AdminMetadataPage: React.FC = () => {
     });
 
     // Add admin check hook
-    // @ts-ignore
     const {
         data: isAdmin,
         isLoading: adminCheckLoading,
         error: adminCheckError,
         refetch: refetchAdminStatus
     } = useReadContract({
-        address: CONTRACT_ADDRESS,
-        abi: CONTRACT_ABI,
+        address: ADMIN_MANAGER_ADDRESS,
+        abi: adminManagerABI,
         functionName: 'admin',
         args: [address],
-        enabled: !!address && isConnected,
+        query: {
+            enabled: !!address && isConnected,
+        }
     });
 
     // Convert date-time string to Unix timestamp in seconds
@@ -242,8 +196,8 @@ const AdminMetadataPage: React.FC = () => {
 
             // Call createEvent function using wagmi
             writeContract({
-                address: CONTRACT_ADDRESS,
-                abi: CONTRACT_ABI,
+                address: EVENT_MANAGER_ADDRESS,
+                abi: eventManagerABI,
                 functionName: 'createEvent',
                 args: [eventTimestamp, metadataHash],
             });
@@ -330,53 +284,52 @@ const AdminMetadataPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800 p-6">
             <div className="max-w-2xl mx-auto">
-                <div className="bg-white rounded-2xl shadow-xl p-8">
+                <div className="bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-2xl shadow-2xl p-8">
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <div className="flex items-center justify-center mb-4">
-                            <Shield className="w-8 h-8 text-blue-600 mr-2" />
-                            <h1 className="text-3xl font-bold text-gray-900">Admin Event Creation</h1>
+                        <div className="flex items-center justify-center mb-6">
+                            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mr-4">
+                                <Shield className="w-8 h-8 text-white" />
+                            </div>
+                            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Admin Event Creation</h1>
                         </div>
-
-                        {/* Admin Status Indicator */}
-                        {isConnected && (
-                            <div className="mb-4">
+                         {isConnected && (
+                            <div className="mb-6">
                                 {adminCheckLoading ? (
-                                    <div className="flex items-center justify-center text-gray-500">
-                                        <Loader className="w-4 h-4 animate-spin mr-2" />
-                                        Checking admin access...
+                                    <div className="flex items-center justify-center text-gray-400">
+                                        <Loader className="w-5 h-5 animate-spin mr-2" />
+                                        <span className="font-medium">Checking admin access...</span>
                                     </div>
                                 ) : isAdmin ? (
-                                    <div className="flex items-center justify-center text-green-600">
-                                        <CheckCircle className="w-4 h-4 mr-2" />
-                                        Admin access verified
+                                    <div className="flex items-center justify-center text-green-400">
+                                        <CheckCircle className="w-5 h-5 mr-2" />
+                                        <span className="font-medium">Admin access verified</span>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center justify-center text-red-600">
-                                        <AlertCircle className="w-4 h-4 mr-2" />
-                                        Admin access required
+                                    <div className="flex items-center justify-center text-red-400">
+                                        <AlertCircle className="w-5 h-5 mr-2" />
+                                        <span className="font-medium">Admin access required</span>
                                     </div>
                                 )}
                             </div>
                         )}
 
-                        {/* Step Indicator - Only show if user has access */}
-                        {isConnected && isAdmin && (
-                            <div className="flex justify-center items-center space-x-4 text-sm text-gray-500">
-                                <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-600' : ''}`}>
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
-                                        currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                        {isConnected && isAdmin==true && (
+                            <div className="flex justify-center items-center space-x-6 text-sm">
+                                <div className={`flex items-center ${currentStep >= 1 ? 'text-blue-400' : 'text-gray-500'}`}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 font-semibold ${
+                                        currentStep >= 1 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : 'bg-gray-700 text-gray-400'
                                     }`}>1</div>
-                                    Upload Metadata
+                                    <span className="font-medium">Upload Metadata</span>
                                 </div>
-                                <ArrowRight className="w-4 h-4" />
-                                <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-600' : ''}`}>
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-2 ${
-                                        currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-blue-200'
+                                <ArrowRight className="w-5 h-5 text-gray-500" />
+                                <div className={`flex items-center ${currentStep >= 2 ? 'text-blue-400' : 'text-gray-500'}`}>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 font-semibold ${
+                                        currentStep >= 2 ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' : 'bg-gray-700 text-gray-400'
                                     }`}>2</div>
-                                    Create Event
+                                    <span className="font-medium">Create Event</span>
                                 </div>
                             </div>
                         )}
@@ -384,45 +337,49 @@ const AdminMetadataPage: React.FC = () => {
 
                     {/* Wallet Connection Status */}
                     {!isConnected && (
-                        <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                        <div className="mb-6 bg-gradient-to-r from-amber-900/20 to-orange-900/20 border border-amber-500/30 rounded-2xl p-6 backdrop-blur-sm">
                             <div className="text-center">
-                                <AlertCircle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-yellow-800 mb-2">Wallet Connection Required</h3>
-                                <p className="text-yellow-700 mb-4">Please connect your wallet to access the admin panel</p>
-                                <button className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                                <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl w-fit mx-auto mb-4">
+                                    <AlertCircle className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-amber-300 mb-2">Wallet Connection Required</h3>
+                                <p className="text-amber-200 mb-4">Please connect your wallet to access the admin panel</p>
+                                <button className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                                     Connect Wallet
                                 </button>
                             </div>
                         </div>
                     )}
 
-                    {/* Admin Access Check */}
-                    {isConnected && !adminCheckLoading && !isAdmin && (
-                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-6">
+                    {isConnected && !adminCheckLoading && isAdmin === false && (
+                        <div className="mb-6 bg-gradient-to-r from-red-900/20 to-pink-900/20 border border-red-500/30 rounded-2xl p-6 backdrop-blur-sm">
                             <div className="text-center">
-                                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-red-800 mb-2">Access Denied</h3>
-                                <p className="text-red-700 mb-2">Your wallet address does not have admin privileges.</p>
-                                <p className="text-red-600 text-sm">Only admin accounts can create events.</p>
-                                <div className="mt-4 p-3 bg-white border border-red-200 rounded">
-                                    <p className="text-xs text-gray-600">Connected Address:</p>
-                                    <code className="text-xs text-gray-800 break-all">{address}</code>
+                                <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl w-fit mx-auto mb-4">
+                                    <AlertCircle className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-red-300 mb-2">Access Denied</h3>
+                                <p className="text-red-200 mb-2">Your wallet address does not have admin privileges.</p>
+                                <p className="text-red-300 text-sm mb-4">Only admin accounts can create events.</p>
+                                <div className="p-4 bg-gray-800/50 border border-red-500/20 rounded-xl">
+                                    <p className="text-xs text-gray-400 mb-1">Connected Address:</p>
+                                    <code className="text-xs text-gray-300 break-all font-mono">{address}</code>
                                 </div>
                             </div>
                         </div>
                     )}
-
                     {/* Contract Error */}
                     {adminCheckError && (
-                        <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-6">
+                        <div className="mb-6 bg-gradient-to-r from-red-900/20 to-pink-900/20 border border-red-500/30 rounded-2xl p-6 backdrop-blur-sm">
                             <div className="text-center">
-                                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                                <h3 className="text-lg font-semibold text-red-800 mb-2">Contract Error</h3>
-                                <p className="text-red-700 mb-2">Unable to verify admin status</p>
-                                <p className="text-red-600 text-sm">Please check if the contract address is correct and try again.</p>
+                                <div className="p-3 bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl w-fit mx-auto mb-4">
+                                    <AlertCircle className="w-8 h-8 text-white" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-red-300 mb-2">Contract Error</h3>
+                                <p className="text-red-200 mb-2">Unable to verify admin status</p>
+                                <p className="text-red-300 text-sm mb-4">Please check if the contract address is correct and try again.</p>
                                 <button
                                     onClick={() => refetchAdminStatus()}
-                                    className="mt-3 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
+                                    className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                                 >
                                     Retry
                                 </button>
@@ -432,11 +389,13 @@ const AdminMetadataPage: React.FC = () => {
 
                     {/* Loading State for Admin Check */}
                     {adminCheckLoading && (
-                        <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+                        <div className="mb-6 bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/30 rounded-2xl p-6 backdrop-blur-sm">
                             <div className="text-center">
-                                <Loader className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin" />
-                                <h3 className="text-lg font-semibold text-blue-800 mb-2">Verifying Access</h3>
-                                <p className="text-blue-700">Checking your admin privileges...</p>
+                                <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl w-fit mx-auto mb-4">
+                                    <Loader className="w-8 h-8 text-white animate-spin" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-blue-300 mb-2">Verifying Access</h3>
+                                <p className="text-blue-200">Checking your admin privileges...</p>
                             </div>
                         </div>
                     )}
@@ -448,7 +407,7 @@ const AdminMetadataPage: React.FC = () => {
                             {currentStep === 1 && (
                                 <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
                                             Event Name *
                                         </label>
                                         <input
@@ -457,42 +416,34 @@ const AdminMetadataPage: React.FC = () => {
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                 handleInputChange('name', e.target.value)
                                             }
-                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                errors.name ? 'border-red-500' : 'border-gray-300'
+                                            className={`w-full px-4 py-3 bg-gray-700/50 border backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400 ${
+                                                errors.name ? 'border-red-500' : 'border-gray-600'
                                             }`}
                                             placeholder="Enter event name"
                                         />
-                                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                                        {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
                                             Event Date & Time *
                                         </label>
-                                        <div className="relative">
-                                            <Calendar className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                                            <input
-                                                type="datetime-local"
-                                                value={formData.eventDateTime}
-                                                min={getMinDateTime()}
-                                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                                    handleInputChange('eventDateTime', e.target.value)
-                                                }
-                                                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                    errors.eventDateTime ? 'border-red-500' : 'border-gray-300'
-                                                }`}
-                                            />
-                                        </div>
-                                        {errors.eventDateTime && <p className="text-red-500 text-sm mt-1">{errors.eventDateTime}</p>}
+                                        <DatePicker
+                                            value={formData.eventDateTime}
+                                            onChange={(value) => handleInputChange('eventDateTime', value)}
+                                            minDateTime={getMinDateTime()}
+                                            error={!!errors.eventDateTime}
+                                        />
+                                        {errors.eventDateTime && <p className="text-red-400 text-sm mt-1">{errors.eventDateTime}</p>}
                                         {formData.eventDateTime && (
-                                            <p className="text-xs text-gray-500 mt-1">
+                                            <p className="text-xs text-gray-400 mt-1 font-mono">
                                                 Unix timestamp: {dateTimeToUnixTimestamp(formData.eventDateTime).toString()}
                                             </p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
                                             Description *
                                         </label>
                                         <textarea
@@ -501,16 +452,17 @@ const AdminMetadataPage: React.FC = () => {
                                                 handleInputChange('description', e.target.value)
                                             }
                                             rows={4}
-                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                errors.description ? 'border-red-500' : 'border-gray-300'
+                                            className={`w-full px-4 py-3 bg-gray-700/50 border backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400 resize-none ${
+                                                errors.description ? 'border-red-500' : 'border-gray-600'
                                             }`}
+
                                             placeholder="Enter event description"
                                         />
-                                        {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
+                                        {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
                                             Venue *
                                         </label>
                                         <input
@@ -519,16 +471,16 @@ const AdminMetadataPage: React.FC = () => {
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                 handleInputChange('venue', e.target.value)
                                             }
-                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                errors.venue ? 'border-red-500' : 'border-gray-300'
+                                            className={`w-full px-4 py-3 bg-gray-700/50 border backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400 ${
+                                                errors.venue ? 'border-red-500' : 'border-gray-600'
                                             }`}
                                             placeholder="Enter venue name"
                                         />
-                                        {errors.venue && <p className="text-red-500 text-sm mt-1">{errors.venue}</p>}
+                                        {errors.venue && <p className="text-red-400 text-sm mt-1">{errors.venue}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
                                             Category *
                                         </label>
                                         <select
@@ -536,21 +488,21 @@ const AdminMetadataPage: React.FC = () => {
                                             onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                                                 handleInputChange('category', e.target.value)
                                             }
-                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                errors.category ? 'border-red-500' : 'border-gray-300'
+                                            className={`w-full px-4 py-3 bg-gray-700/50 border backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white ${
+                                                errors.category ? 'border-red-500' : 'border-gray-600'
                                             }`}
                                         >
-                                            <option value="">Select a category</option>
-                                            <option value="MUSIC">MUSIC</option>
-                                            <option value="EDUCATION">EDUCATION</option>
-                                            <option value="SPORTS">SPORTS</option>
-                                            <option value="COMEDY">COMEDY</option>
+                                            <option value="" className="bg-gray-800">Select a category</option>
+                                            <option value="MUSIC" className="bg-gray-800">🎤 MUSIC</option>
+                                            <option value="EDUCATION" className="bg-gray-800">📚 EDUCATION</option>
+                                            <option value="SPORTS" className="bg-gray-800">🏈 SPORTS</option>
+                                            <option value="COMEDY" className="bg-gray-800">🎭 COMEDY</option>
                                         </select>
-                                        {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
+                                        {errors.category && <p className="text-red-400 text-sm mt-1">{errors.category}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        <label className="block text-sm font-medium text-gray-300 mb-2">
                                             Image URL *
                                         </label>
                                         <input
@@ -559,19 +511,19 @@ const AdminMetadataPage: React.FC = () => {
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                                                 handleInputChange('imageUrl', e.target.value)
                                             }
-                                            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                errors.imageUrl ? 'border-red-500' : 'border-gray-300'
+                                            className={`w-full px-4 py-3 bg-gray-700/50 border backdrop-blur-sm rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-white placeholder-gray-400 ${
+                                                errors.imageUrl ? 'border-red-500' : 'border-gray-600'
                                             }`}
                                             placeholder="https://example.com/image.jpg"
                                         />
-                                        {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>}
+                                        {errors.imageUrl && <p className="text-red-400 text-sm mt-1">{errors.imageUrl}</p>}
                                     </div>
 
                                     {errors.submit && (
-                                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                                        <div className="bg-gradient-to-r from-red-900/20 to-pink-900/20 border border-red-500/30 rounded-xl p-4 backdrop-blur-sm">
                                             <div className="flex items-center">
-                                                <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-                                                <p className="text-red-700">{errors.submit}</p>
+                                                <AlertCircle className="w-5 h-5 text-red-400 mr-2" />
+                                                <p className="text-red-300">{errors.submit}</p>
                                             </div>
                                         </div>
                                     )}
@@ -579,7 +531,7 @@ const AdminMetadataPage: React.FC = () => {
                                     <button
                                         onClick={handleSubmitMetadata}
                                         disabled={isLoading}
-                                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-medium py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
                                     >
                                         {isLoading ? (
                                             <Loader className="w-5 h-5 animate-spin mr-2" />
@@ -594,33 +546,35 @@ const AdminMetadataPage: React.FC = () => {
                             {/* Step 2: Contract Call */}
                             {currentStep === 2 && (
                                 <div className="space-y-6">
-                                    <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+                                    <div className="bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/30 rounded-2xl p-6 backdrop-blur-sm">
                                         <div className="flex items-center mb-4">
-                                            <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
-                                            <h3 className="text-lg font-semibold text-green-800">Metadata Uploaded Successfully!</h3>
+                                            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl mr-3">
+                                                <CheckCircle className="w-6 h-6 text-white" />
+                                            </div>
+                                            <h3 className="text-xl font-semibold text-green-300">Metadata Uploaded Successfully!</h3>
                                         </div>
-                                        <div className="bg-white rounded-lg p-4 border border-green-200">
-                                            <p className="text-sm text-gray-600 mb-2">Metadata Hash:</p>
-                                            <code className="text-sm bg-gray-100 px-2 py-1 rounded break-all">{metadataHash}</code>
+                                        <div className="bg-gray-800/50 rounded-xl p-4 border border-green-500/20 mb-4">
+                                            <p className="text-sm text-gray-400 mb-2">Metadata Hash:</p>
+                                            <code className="text-sm bg-gray-700/50 text-green-300 px-3 py-2 rounded-lg break-all font-mono">{metadataHash}</code>
                                         </div>
-                                        <div className="bg-white rounded-lg p-4 border border-green-200 mt-4">
-                                            <p className="text-sm text-gray-600 mb-2">Event Timestamp:</p>
-                                            <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                                        <div className="bg-gray-800/50 rounded-xl p-4 border border-green-500/20">
+                                            <p className="text-sm text-gray-400 mb-2">Event Timestamp:</p>
+                                            <code className="text-sm bg-gray-700/50 text-green-300 px-3 py-2 rounded-lg font-mono">
                                                 {formData.eventDateTime ? dateTimeToUnixTimestamp(formData.eventDateTime).toString() : ''}
                                             </code>
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
-                                        <h3 className="text-lg font-semibold text-gray-900">Step 2: Create Event on Blockchain</h3>
-                                        <p className="text-gray-600">
+                                        <h3 className="text-xl font-semibold text-white">Step 2: Create Event on Blockchain</h3>
+                                        <p className="text-gray-300">
                                             Now create the event on the blockchain using the uploaded metadata and selected date/time.
                                         </p>
 
                                         <button
                                             onClick={handleContractCall}
                                             disabled={!isConnected || isWritePending || isConfirming}
-                                            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 disabled:from-gray-600 disabled:to-gray-700 text-white font-medium py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105 disabled:transform-none"
                                         >
                                             {(isWritePending || isConfirming) ? (
                                                 <Loader className="w-5 h-5 animate-spin mr-2" />
@@ -633,28 +587,28 @@ const AdminMetadataPage: React.FC = () => {
                                         </button>
 
                                         {contractCallStatus && (
-                                            <div className={`p-4 rounded-lg ${
+                                            <div className={`p-4 rounded-xl backdrop-blur-sm ${
                                                 contractCallStatus.includes('successfully') || contractCallStatus.includes('confirmed')
-                                                    ? 'bg-green-50 border border-green-200 text-green-800'
+                                                    ? 'bg-gradient-to-r from-green-900/20 to-emerald-900/20 border border-green-500/30 text-green-300'
                                                     : contractCallStatus.includes('failed') || contractCallStatus.includes('rejected')
-                                                        ? 'bg-red-50 border border-red-200 text-red-800'
-                                                        : 'bg-blue-50 border border-blue-200 text-blue-800'
+                                                        ? 'bg-gradient-to-r from-red-900/20 to-pink-900/20 border border-red-500/30 text-red-300'
+                                                        : 'bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/30 text-blue-300'
                                             }`}>
-                                                <p className="break-all">{contractCallStatus}</p>
+                                                <p className="break-all font-medium">{contractCallStatus}</p>
                                             </div>
                                         )}
 
                                         {hash && (
-                                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                                                <p className="text-sm text-blue-600 mb-2">Transaction Hash:</p>
-                                                <code className="text-sm bg-white px-2 py-1 rounded break-all">{hash}</code>
+                                            <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-500/30 rounded-xl p-4 backdrop-blur-sm">
+                                                <p className="text-sm text-blue-300 mb-2 font-medium">Transaction Hash:</p>
+                                                <code className="text-sm bg-gray-800/50 text-blue-300 px-3 py-2 rounded-lg break-all font-mono">{hash}</code>
                                             </div>
                                         )}
 
                                         <div className="pt-4">
                                             <button
                                                 onClick={resetForm}
-                                                className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200"
+                                                className="w-full bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-medium py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                                             >
                                                 Create Another Event
                                             </button>

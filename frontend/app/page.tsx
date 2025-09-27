@@ -1,7 +1,6 @@
 import {Header} from "@/app/components/Header";
 import {SearchBar} from "@/app/components/Input";
 import {HeroBanner} from "@/app/components/HeroBanner";
-import {FilterChips} from "@/app/components/FilterChips";
 import {EventSection} from "@/app/components/EventSection";
 import {eventService} from "@/app/service/events.service";
 import {Events} from "@/app/types/Events";
@@ -15,52 +14,60 @@ export default async function Home(){
     const EducationEvents=events.filter((event:Events)=>event.category==="EDUCATION")
     const SportsEvents=events.filter((event:Events)=>event.category==="SPORTS")
     return (
-        <div className="min-h-screen bg-[#E8DFCA]">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-800">
 
-            <main className="container mx-auto px-8 py-8">
+            <main className="container mx-auto px-6 md:px-8 py-8 space-y-16">
                 {/* Search Section */}
-                <div className="mb-12">
+                <div className="pt-8">
                     <SearchBar />
                 </div>
 
                 {/* Hero Banner */}
-                <div className="mb-12">
+                <div>
                     <HeroBanner events={events} />
                 </div>
 
-                {/* Filters */}
-                {/*<FilterChips />*/}
+                {/* Event Sections */}
+                <div className="space-y-12">
+                    <EventSection
+                        title="🎭 Comedy Events Happening"
+                        events={ComedyEvents}
+                        showEdit={false}
+                    />
 
-                {/* Recently Viewed */}
-                <EventSection
-                    title="Comedy Events Happening"
-                    events={ComedyEvents}
-                    showEdit={false}
-                />
+                    <EventSection
+                        title="🏈 Sports Events Happening"
+                        events={SportsEvents}
+                        showEdit={false}
+                    />
 
-                <EventSection
-                    title="Sports Events Happening"
-                    events={SportsEvents}
-                    showEdit={false}
-                />
-                <EventSection
-                    title="Music Events Happening"
-                    events={MusicEvents}
-                    showEdit={false}
-                />
-                <EventSection
-                    title="Education Events Happening"
-                    events={EducationEvents}
-                    showEdit={false}
-                />
+                    <EventSection
+                        title="🎤 Music Events Happening"
+                        events={MusicEvents}
+                        showEdit={false}
+                    />
+
+                    <EventSection
+                        title="📚 Education Events Happening"
+                        events={EducationEvents}
+                        showEdit={false}
+                    />
+                </div>
             </main>
 
             {/* Footer */}
-            <footer className="bg-gray-900 text-gray-300 py-12">
+            <footer className="bg-gradient-to-r from-gray-900 to-slate-900 text-gray-300 py-16 mt-16">
                 <div className="container mx-auto px-8">
-                    <div className="text-center">
-                        <p className="mb-2">We&#39;re the world&#39;s largest secondary marketplace for tickets to live events.</p>
+                    <div className="text-center space-y-4">
+                        <h3 className="text-xl font-semibold text-white">TicketHub</h3>
+                        <p className="text-gray-300 max-w-2xl mx-auto">We're the world's largest secondary marketplace for tickets to live events. Your gateway to unforgettable experiences.</p>
                         <p className="text-sm text-gray-400">Prices are set by sellers and may be below or above face value.</p>
+                        <div className="flex justify-center space-x-6 pt-4 text-sm">
+                            <a href="#" className="hover:text-white transition-colors">About</a>
+                            <a href="#" className="hover:text-white transition-colors">Support</a>
+                            <a href="#" className="hover:text-white transition-colors">Terms</a>
+                            <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                        </div>
                     </div>
                 </div>
             </footer>
