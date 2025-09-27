@@ -8,7 +8,7 @@ import loggerLib from "../lib/logger.lib";
 import userModel from "../model/user.model";
 import eventModel from "../model/event.model";
 import offerModel from "../model/offer.model";
-import adminManager from "../abi/admin.manager.abi.json";
+import adminManagerAbi from "../abi/admin.manager.abi.json";
 import eventManagerAbi from '../abi/event.manager.abi.json';
 import offerManagerAbi from '../abi/offer.manager.abi.json';
 
@@ -29,7 +29,7 @@ export class IndexerService {
 
             this.adminManagerContract= ethersLib.initialiseContract(
                 adminManagerAddress,
-                adminManager
+                adminManagerAbi
             );
 
             this.eventManagerContract = ethersLib.initialiseContract(
