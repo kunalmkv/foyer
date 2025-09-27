@@ -64,7 +64,7 @@ export default class ChatService {
 
                 const chats = await mongoLib.findWithSort(
                     chatModel,
-                    {participants: userId},
+                    {participants: userId.toLowerCase()},
                     {lastMessageTimestamp: -1}
                 );
 
@@ -96,8 +96,8 @@ export default class ChatService {
                     chatMessageModel,
                     {
                         $or: [
-                            {from: userId1, to: userId2},
-                            {from: userId2, to: userId1}
+                            {from: userId1.toLowerCase(), to: userId2.toLowerCase()},
+                            {from: userId2.toLowerCase(), to: userId1.toLowerCase()}
                         ]
                     },
                     (Number(page) - 1) * Number(limit),

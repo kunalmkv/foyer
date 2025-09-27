@@ -8,7 +8,7 @@ export class ChatService implements IChatService {
 
     constructor() {
         // Initialize socket connection
-        this.socket = io('http://localhost:3002', {
+        this.socket = io('http://18.191.199.142:3002', {
             transports: ['websocket', 'polling']
         });
 
@@ -36,7 +36,7 @@ export class ChatService implements IChatService {
     }
 
     async getChats(userId: string): Promise<Chat[]> {
-        const response = await fetch(`${baseurl.replace('3000', '3002')}/chats/${userId}`, {
+        const response = await fetch(`${baseurl.replace('3000', '3002')}/chats/${userId.toLowerCase()}`, {
             cache: 'no-cache',
         });
         if (!response.ok) {
@@ -48,7 +48,7 @@ export class ChatService implements IChatService {
     }
 
     async getMessages(userId1: string, userId2: string, page: number = 1, limit: number = 50): Promise<ChatMessage[]> {
-        const response = await fetch(`${baseurl.replace('3000', '3002')}/messages/${userId1}/${userId2}?page=${page}&limit=${limit}`, {
+        const response = await fetch(`${baseurl.replace('3000', '3002')}/messages/${userId1.toLowerCase()}/${userId2.toLowerCase()}?page=${page}&limit=${limit}`, {
             cache: 'no-cache',
         });
         if (!response.ok) {
@@ -61,18 +61,58 @@ export class ChatService implements IChatService {
 
     connectToChat(userId: string): void {
         if (this.socket) {
-            this.socket.emit('join', { userId });
+            this.socket.emit('join', { userId: userId.toLowerCase() });
         }
     }
 
     sendMessage(data: SendMessageRequest): void {
         if (this.socket) {
-            this.socket.emit('sendMessage', data);
+            const messageData = {
+                ...data,
+                from: data.from.toLowerCase(),
+                to: data.to.toLowerCase()
+            };
+            this.socket.emit('sendMessage', messageData);
         }
     }
 
     onNewMessage(callback: (message: ChatMessage) => void): void {
         this.messageCallbacks.push(callback);
+    }
+
+    async initiateOfferChat(buyerAddress: string, sellerAddress: string, offerId: number, offerType: 'OFFER_TO_BUY' | 'OFFER_TO_SELL'): Promise<void> {
+        try {
+            // Create initial template message
+            const templateMessage = this.createOfferAcceptanceMessage(offerId, offerType);
+            
+            // Send the initial message to start the chat
+            const messageData: SendMessageRequest = {
+                from: buyerAddress, // The person who accepted the offer sends the first message
+                to: sellerAddress,
+                message: templateMessage
+            };
+
+            // Send via socket
+            this.sendMessage(messageData);
+            
+            console.log('Offer chat initiated successfully', { offerId, buyerAddress, sellerAddress });
+        } catch (error) {
+            console.error('Failed to initiate offer chat:', error);
+            throw error;
+        }
+    }
+
+    private createOfferAcceptanceMessage(offerId: number, offerType: 'OFFER_TO_BUY' | 'OFFER_TO_SELL'): string {
+        const action = offerType === 'OFFER_TO_SELL' ? 'purchased' : 'accepted your buy request for';
+        const nextSteps = offerType === 'OFFER_TO_SELL' 
+            ? 'Please arrange for ticket delivery. Once you receive the tickets, please confirm in the system to complete the transaction.'
+            : 'Please arrange for ticket delivery. Once the buyer receives the tickets, they will confirm to complete the transaction.';
+
+        return `🎫 Great news! I've ${action} your tickets for Offer #${offerId}. 
+
+${nextSteps}
+
+Looking forward to a smooth transaction! 👍`;
     }
 
     disconnect(): void {

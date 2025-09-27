@@ -1,11 +1,15 @@
 import { Shield, Users, TrendingUp, TrendingDown, Clock, MapPin } from "lucide-react";
 import { Offer } from "@/app/types/Offers";
+import { useAccount } from 'wagmi';
+import { handleOfferAcceptanceWithChat } from '@/app/utils/offerChat';
 
 interface OfferCardProps {
     offer: Offer;
 }
 
 export const OfferCard = ({ offer }: OfferCardProps) => {
+    const { address, isConnected } = useAccount();
+
     // Convert PYUSD wei to readable format (6 decimals)
     const formatPrice = (priceInWei: number) => {
         if (!priceInWei || isNaN(priceInWei)) return '0.00';
@@ -58,6 +62,37 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
     const typeInfo = getTypeInfo(offer.type);
     const TypeIcon = typeInfo.icon;
 
+    const handleAcceptOffer = async () => {
+        if (!isConnected || !address) {
+            alert('Please connect your wallet first');
+            return;
+        }
+
+        if (address === offer.sellerAddress) {
+            alert('You cannot accept your own offer');
+            return;
+        }
+
+        try {
+            // TODO: Add the actual blockchain transaction here using wagmi
+            // For now, we'll simulate the acceptance and trigger the chat
+            
+            console.log('Accepting offer:', offer.id);
+            
+            // Simulate successful transaction - in real implementation, 
+            // this would be called after the blockchain transaction is confirmed
+            await handleOfferAcceptanceWithChat({
+                offer,
+                acceptingUserAddress: address
+            });
+
+            alert('Offer accepted! A chat has been started with the other party.');
+        } catch (error) {
+            console.error('Failed to accept offer:', error);
+            alert('Failed to accept offer. Please try again.');
+        }
+    };
+
     return (
         <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-2xl border border-gray-700 hover:shadow-3xl transition-all duration-300 hover:border-blue-500/50">
             <div className="flex justify-between items-start mb-4">
@@ -102,8 +137,15 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                     </div>
                     <div className="text-sm text-gray-300 mb-3">per ticket</div>
 
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors">
-                        {offer.type === 'OFFER_TO_SELL' ? 'Buy Now' : 'Sell Now'}
+                    <button 
+                        onClick={handleAcceptOffer}
+                        disabled={!isConnected || address === offer.sellerAddress || offer.status !== 'ACTIVE'}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-3 px-6 rounded-xl transition-colors"
+                    >
+                        {!isConnected ? 'Connect Wallet' : 
+                         address === offer.sellerAddress ? 'Your Offer' :
+                         offer.status !== 'ACTIVE' ? `${offer.status}` :
+                         offer.type === 'OFFER_TO_SELL' ? 'Buy Now' : 'Sell Now'}
                     </button>
                 </div>
             </div>
