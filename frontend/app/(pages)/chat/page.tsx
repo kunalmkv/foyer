@@ -77,7 +77,8 @@ export default function ChatPage() {
             // Log the number of chats received
             console.log('Received chats from API:', userChats?.length || 0);
             
-            setChats(userChats);
+            // Ensure userChats is always an array
+            setChats(userChats || []);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to load chats');
         } finally {

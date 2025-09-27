@@ -19,7 +19,7 @@ export class ChatService implements IChatService {
     private initializeSocket() {
         try {
             // Initialize socket connection
-            this.socket = io('http://18.191.199.142:3002', {
+            this.socket = io(baseurl.replace('3000', '3002'), {
                 transports: ['websocket', 'polling'],
                 reconnection: true,
                 reconnectionAttempts: this.maxReconnectAttempts,
