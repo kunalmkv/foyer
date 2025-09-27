@@ -195,6 +195,7 @@ export class IndexerService {
                     category,
                     imageUrl,
                     metadataUrl: metadataUri,
+                    status:eventStatusEnum.UPCOMING
                 },
                 {upsert: true}
             )
