@@ -1,7 +1,6 @@
 import joi from 'joi';
 
 export default joi.object({
-    type: joi.string().valid('OFFER_TO_BUY', 'OFFER_TO_SELL').required(),
     sellerAddress: joi.string().required(),
     buyerAddress: joi.string().allow(null).optional(),
     quantity: joi.number().positive().required(),
