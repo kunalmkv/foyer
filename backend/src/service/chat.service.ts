@@ -113,7 +113,7 @@ export default class ChatService {
                     },
                     (Number(page) - 1) * Number(limit),
                     Number(limit),
-                    {timestamp: -1}
+                    {timestamp: 1}
                 );
 
                 // Transform messages to include _id and ensure proper format
