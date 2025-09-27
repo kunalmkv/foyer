@@ -15,6 +15,7 @@ pragma solidity ^0.8.13;
 //                    \______/
 //
 
+import {IKYCRelayer} from "./interfaces/IKYCRelayer.sol";
 import {IEventManager} from "./interfaces/IEventManager.sol";
 import {IAdminManager} from "./interfaces/IAdminManager.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -36,6 +37,7 @@ contract OfferManager {
     }
 
     IERC20 public immutable PYUSD;
+    IKYCRelayer public immutable KYC_RELAYER;
     IEventManager public immutable EVENT_MANAGER;
     IAdminManager public immutable ADMIN_MANAGER;
 
@@ -51,8 +53,9 @@ contract OfferManager {
     event OfferToBuyCreated(uint256 indexed offerId, uint256 indexed eventId, address indexed buyer, uint256 bid, uint256 collateral, string metadataUri);
     event OfferToSellCreated(uint256 indexed offerId, uint256 indexed eventId, address indexed seller, uint256 ask, uint256 collateral, string metadataUri);
 
-    constructor(address _pyusd, address _eventManager, address _adminManager) {
+    constructor(address _pyusd, address _kycRelayer, address _eventManager, address _adminManager) {
         PYUSD = IERC20(_pyusd);
+        KYC_RELAYER = IKYCRelayer(_kycRelayer);
         EVENT_MANAGER = IEventManager(_eventManager);
         ADMIN_MANAGER = IAdminManager(_adminManager);
     }
@@ -62,7 +65,12 @@ contract OfferManager {
         _;
     }
 
-    function createOfferToSell(uint256 _eventId, uint256 _ask, string calldata _metadataUri) external returns (uint256) {
+    modifier onlyKYCVerified() {
+        require(KYC_RELAYER.isVerified(msg.sender), "Caller is not KYC verified");
+        _;
+    }
+
+    function createOfferToSell(uint256 _eventId, uint256 _ask, string calldata _metadataUri) external onlyKYCVerified returns (uint256) {
         require(_ask > 0, "Ask must be > 0");
 
         (address creator, uint256 eventTime,, bool isCancelled) = EVENT_MANAGER.events(_eventId);
@@ -89,7 +97,7 @@ contract OfferManager {
         return offerCount;
     }
 
-    function createOfferToBuy(uint256 _eventId, uint256 _bid, string calldata _metadataUri) external returns (uint256) {
+    function createOfferToBuy(uint256 _eventId, uint256 _bid, string calldata _metadataUri) external onlyKYCVerified returns (uint256) {
         require(_bid > 0, "Bid must be > 0");
 
         (address creator, uint256 eventTime,, bool isCancelled) = EVENT_MANAGER.events(_eventId);
@@ -115,7 +123,7 @@ contract OfferManager {
         return offerCount;
     }
 
-    function acceptOffer(uint256 _offerId) external {
+    function acceptOffer(uint256 _offerId) external onlyKYCVerified {
         Offer storage offer = offers[_offerId];
         require(offer.status == OfferStatus.Active, "Offer is not active!");
 
