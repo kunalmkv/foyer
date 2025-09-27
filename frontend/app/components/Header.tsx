@@ -17,7 +17,8 @@ export const Header = () => {
             </div>
             <div className="flex gap-6 items-center">
                 <a href="#" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Explore</a>
-                <a href="#" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Sell</a>
+                <a href="/sell" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Sell</a>
+                <a href="/buy" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">Buy</a>
                 <a href="#" className="text-gray-300 hover:text-white transition-all duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">My Tickets</a>
 
                 <ConnectButton.Custom>
