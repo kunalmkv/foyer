@@ -10,16 +10,14 @@ export class ChatService implements IChatService {
     private maxReconnectAttempts: number = 5;
 
     constructor() {
-        // Delay socket initialization to prevent blocking
-        setTimeout(() => {
-            this.initializeSocket();
-        }, 100);
+        // Initialize socket immediately
+        this.initializeSocket();
     }
 
     private initializeSocket() {
         try {
             // Initialize socket connection
-            this.socket = io('http://18.191.199.142:3002', {
+            this.socket = io(baseurl.replace('3000', '3002'), {
                 transports: ['websocket', 'polling'],
                 reconnection: true,
                 reconnectionAttempts: this.maxReconnectAttempts,
@@ -29,7 +27,7 @@ export class ChatService implements IChatService {
             });
 
         this.socket.on('connect', () => {
-            console.log('Connected to chat server');
+            console.log('Connected to chat server with socket ID:', this.socket?.id);
             this.isConnected = true;
             this.reconnectAttempts = 0;
         });
@@ -53,22 +51,21 @@ export class ChatService implements IChatService {
         this.socket.on('newMessage', (data: any) => {
             console.log('Received socket message:', data);
             
-            // Generate a unique ID for socket messages
-            const messageId = `socket-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            
             const message: ChatMessage = {
-                _id: messageId,
+                _id: data._id || `socket-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
                 from: data.from?.toLowerCase() || '',
                 to: data.to?.toLowerCase() || '',
                 message: data.message || '',
                 timestamp: data.timestamp || new Date().toISOString(),
-                createdAt: data.timestamp || new Date().toISOString(),
-                updatedAt: data.timestamp || new Date().toISOString()
+                createdAt: data.createdAt || data.timestamp || new Date().toISOString(),
+                updatedAt: data.updatedAt || data.timestamp || new Date().toISOString()
             };
             
             console.log('Processed socket message:', message);
-            this.messageCallbacks.forEach(callback => {
+            console.log('Calling', this.messageCallbacks.length, 'message callbacks');
+            this.messageCallbacks.forEach((callback, index) => {
                 try {
+                    console.log(`Calling callback ${index + 1}/${this.messageCallbacks.length}`);
                     callback(message);
                 } catch (error) {
                     console.error('Error in message callback:', error);
@@ -120,12 +117,34 @@ export class ChatService implements IChatService {
     }
 
     connectToChat(userId: string): void {
-        if (this.socket && this.isConnected) {
-            console.log('Joining chat for user:', userId);
-            this.socket.emit('join', { userId: userId.toLowerCase() });
-        } else {
-            console.warn('Cannot connect to chat: socket not connected');
-        }
+        const attemptJoin = () => {
+            if (this.socket && this.isConnected) {
+                console.log('Joining chat for user:', userId, 'with socket ID:', this.socket.id);
+                this.socket.emit('join', { userId: userId.toLowerCase() });
+                
+                // Listen for join confirmation
+                this.socket.once('joined', (data) => {
+                    console.log('Successfully joined chat:', data);
+                });
+                
+                this.socket.once('error', (error) => {
+                    console.error('Error joining chat:', error);
+                });
+            } else {
+                console.warn('Cannot connect to chat: socket not connected. Socket exists:', !!this.socket, 'Is connected:', this.isConnected);
+                
+                // If socket exists but not connected, wait for connection
+                if (this.socket && !this.isConnected) {
+                    console.log('Waiting for socket connection...');
+                    this.socket.once('connect', () => {
+                        console.log('Socket connected, now joining chat');
+                        attemptJoin();
+                    });
+                }
+            }
+        };
+        
+        attemptJoin();
     }
 
     sendMessage(data: SendMessageRequest): void {
@@ -145,13 +164,18 @@ export class ChatService implements IChatService {
     }
 
     onNewMessage(callback: (message: ChatMessage) => void): void {
+        console.log('Registering new message callback. Total callbacks:', this.messageCallbacks.length + 1);
         this.messageCallbacks.push(callback);
     }
 
     removeMessageCallback(callback: (message: ChatMessage) => void): void {
         const index = this.messageCallbacks.indexOf(callback);
         if (index > -1) {
+            console.log('Removing message callback at index:', index, 'Total callbacks before removal:', this.messageCallbacks.length);
             this.messageCallbacks.splice(index, 1);
+            console.log('Total callbacks after removal:', this.messageCallbacks.length);
+        } else {
+            console.warn('Callback not found for removal. Total callbacks:', this.messageCallbacks.length);
         }
     }
 

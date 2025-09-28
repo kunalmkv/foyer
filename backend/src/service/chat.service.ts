@@ -113,7 +113,7 @@ export default class ChatService {
                     },
                     (Number(page) - 1) * Number(limit),
                     Number(limit),
-                    {timestamp: -1}
+                    {timestamp: 1}
                 );
 
                 // Transform messages to include _id and ensure proper format
@@ -189,7 +189,9 @@ export default class ChatService {
                         loggerLib.logError({
                             message: "SendMessage with missing required fields",
                             socketId: socket.id,
-                            to, message: message ? 'present' : 'missing', from
+                            to, 
+                            messageContent: message ? 'present' : 'missing', 
+                            from
                         });
                         socket.emit('error', { message: 'Missing required fields: to, message, from' });
                         return;

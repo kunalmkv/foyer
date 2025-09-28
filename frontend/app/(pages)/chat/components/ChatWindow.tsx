@@ -92,9 +92,7 @@ export const ChatWindow = ({ chat, currentUser, onBack }: ChatWindowProps) => {
                     console.log('Messages after removing temp:', withoutTemp.length);
                     console.log('Adding new message to chat:', message);
                     
-                    const newMessages = [...withoutTemp, message].sort((a, b) => 
-                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-                    );
+                    const newMessages = [...withoutTemp, message];
                     
                     console.log('Final messages array:', newMessages.length);
                     return newMessages;
@@ -154,17 +152,9 @@ export const ChatWindow = ({ chat, currentUser, onBack }: ChatWindowProps) => {
                 });
             });
             
-            // Sort messages by timestamp to ensure proper order
-            const sortedMessages = fetchedMessages.sort((a, b) => {
-                const timeA = new Date(a.timestamp).getTime();
-                const timeB = new Date(b.timestamp).getTime();
-                console.log(`Sorting: ${a.message.substring(0, 20)}... (${timeA}) vs ${b.message.substring(0, 20)}... (${timeB})`);
-                return timeA - timeB;
-            });
-            
-            console.log('Sorted messages:', sortedMessages);
-            console.log('Setting messages state with', sortedMessages.length, 'messages');
-            setMessages(sortedMessages);
+            // Messages are already sorted by the backend in ascending order
+            console.log('Setting messages state with', fetchedMessages.length, 'messages');
+            setMessages(fetchedMessages);
         } catch (error) {
             console.error('Failed to load messages:', error);
             setMessages([]); // Clear messages on error
