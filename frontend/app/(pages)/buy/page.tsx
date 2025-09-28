@@ -389,9 +389,6 @@ export default function BuyPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    type: 'OFFER_TO_BUY',
-                    sellerAddress: address, // For buy offers, this is the buyer's address
-                    buyerAddress: null,
                     quantity: ticketData.quantity,
                     seatType: ticketData.seatType,
                     isPhysicalTicketNeededToAttend: ticketData.isPhysicalTicketNeededToAttend
@@ -743,7 +740,7 @@ export default function BuyPage() {
                                     </button>
                                     <button
                                         onClick={createBlockchainOffer}
-                                        disabled={isPending || isConfirming || !totalBidPrice || isLoading || !checkBalanceAndAllowance().hasBalance || !checkBalanceAndAllowance().hasAllowance}
+                                        disabled={isPending || isConfirming || !totalBidPrice || isLoading || !checkBalanceAndAllowance().hasBalance}
                                         className="flex-1 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {getStepText()}

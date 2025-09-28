@@ -54,9 +54,8 @@ export const HeroBanner = ({events}:{events:Events[]}) => {
                 <div className="flex-1">
                     <h2 className="text-5xl font-bold mb-2">{currentEvent.name}</h2>
                     <p className="text-xl mb-2 opacity-90">{currentEvent.venue}</p>
-                    <p className="text-lg mb-6 opacity-80">{currentEvent.description}</p>
                     <Link href={`/event/${currentEvent.id}`}>
-                        <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
+                        <button className="bg-white/10 backdrop-blur-md border mt-6 border-white/20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/20 hover:border-white/40 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl">
                             See Tickets →
                         </button>
                     </Link>

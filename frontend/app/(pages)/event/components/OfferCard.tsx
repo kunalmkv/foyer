@@ -226,6 +226,14 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
             };
         }
 
+        if (offer.status === 'ACCEPTED') {
+            return {
+                disabled: true,
+                text: 'Accepted',
+                className: 'bg-purple-600 cursor-not-allowed'
+            };
+        }
+
         if (offer.status !== 'ACTIVE') {
             return {
                 disabled: true,
