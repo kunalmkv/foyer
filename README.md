@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Foyer Logo](frontend/public/foyer_vector_logo.png)
+![Foyer Logo](frontend/public/foyer_final_gitthub.png)
 
 **The world's largest decentralized secondary marketplace for event tickets**
 
