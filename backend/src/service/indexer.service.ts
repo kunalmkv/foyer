@@ -340,7 +340,7 @@ export class IndexerService {
         try {
             loggerLib.logInfo({
                 message: "Detected OfferAccepted event",
-                offerId: offerId.toString(),
+                offerId: offerId.toNumber(),
                 buyerOrSeller: buyer.toLowerCase(),
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
@@ -370,7 +370,7 @@ export class IndexerService {
         try {
             loggerLib.logInfo({
                 message: "Detected OfferCancelled event",
-                offerId: offerId.toString(),
+                offerId:offerId.toNumber(),
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
                 blockHash: event.blockHash,
@@ -391,7 +391,7 @@ export class IndexerService {
         try {
             loggerLib.logInfo({
                 message: "Detected OfferDisputed event",
-                offerId: offerId.toString(),
+                offerId: offerId.toNumber(),
                 by: by.toLowerCase(),
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
@@ -418,7 +418,7 @@ export class IndexerService {
         try {
             loggerLib.logInfo({
                 message: "Detected OfferSettled event",
-                offerId: offerId.toString(),
+                offerId: offerId.toNumber(),
                 seller: seller.toLowerCase(),
                 buyer: buyer.toLowerCase(),
                 blockNumber: event.blockNumber,

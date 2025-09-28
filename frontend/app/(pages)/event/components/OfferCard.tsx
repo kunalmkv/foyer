@@ -6,6 +6,7 @@ import { Offer } from "@/app/types/Offers";
 import {ERC20_ABI, PYUSD_TOKEN_ADDRESS} from "@/app/(pages)/buy/page";
 import {OFFER_MANAGER_ADDRESS} from "@/app/consts";
 import {offerabi} from "@/app/consts/abi";
+import Image from "next/image";
 
 interface OfferCardProps {
     offer: Offer & { id: number | string }; // Ensure offer has an id field
@@ -283,8 +284,17 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                 </div>
 
                 <div className="text-right">
-                    <div className="text-2xl font-bold text-white mb-1">
-                        {(offer.collateral/10**6 * 2)} PYUSD
+                    <div className="flex items-center justify-end gap-2 mb-1">
+                        <span className="text-2xl font-bold text-white">
+                            {(offer.collateral/10**6 * 2)}
+                        </span>
+                        <Image 
+                            src="/pyusd_logo.png" 
+                            alt="PYUSD" 
+                            width={24} 
+                            height={24} 
+                            className="object-contain"
+                        />
                     </div>
                     <div className="text-sm text-gray-300 mb-3">per ticket</div>
 
