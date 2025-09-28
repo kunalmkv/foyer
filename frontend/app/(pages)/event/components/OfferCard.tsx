@@ -186,13 +186,6 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
             };
         }
 
-        if (!hasSufficientBalance()) {
-            return {
-                disabled: true,
-                text: 'Insufficient PYUSD',
-                className: 'bg-red-600 cursor-not-allowed'
-            };
-        }
 
         if (step === 'approving' || (isWritePending && step === 'approving')) {
             return {
@@ -218,21 +211,7 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
             };
         }
 
-        if (step === 'completed') {
-            return {
-                disabled: true,
-                text: 'Accepted!',
-                className: 'bg-green-600 cursor-not-allowed'
-            };
-        }
 
-        if (offer.status === 'ACCEPTED') {
-            return {
-                disabled: true,
-                text: 'Accepted',
-                className: 'bg-purple-600 cursor-not-allowed'
-            };
-        }
 
         if (offer.status !== 'ACTIVE') {
             return {
@@ -266,8 +245,8 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
     const buttonState = getButtonState();
    const requiredAmount = getRequiredAmount();
     return (
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-6 shadow-2xl border border-gray-700 hover:shadow-3xl transition-all duration-300 hover:border-blue-500/50">
-            <div className="flex justify-between items-start mb-4">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 shadow-xl border border-gray-700 hover:shadow-2xl transition-all duration-300 hover:border-blue-500/50">
+            <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                         <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${typeInfo.bgColor}`}>
@@ -312,7 +291,7 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                     <button
                         onClick={handleApproveAndAccept}
                         disabled={buttonState.disabled}
-                        className={`w-full ${buttonState.className} text-white font-bold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2`}
+                        className={`w-full ${buttonState.className} text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2`}
                     >
                         {(isWritePending || isConfirming) && (
                             <Loader2 size={16} className="animate-spin" />
@@ -320,27 +299,7 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                         {buttonState.text}
                     </button>
 
-                    {/* Balance Info */}
-                    {address && pyusdBalance && (
-                        <div className="text-gray-400 text-xs mt-2">
-                            Balance: {formatUnits(pyusdBalance.value, 6)} PYUSD
-                        </div>
-                    )}
 
-                    {/* Required Amount Info */}
-                    {address && (
-                        <div className="text-gray-400 text-xs">
-                            Required: {requiredAmount/10**6} PYUSD
-                        </div>
-                    )}
-
-                    {/* Insufficient Balance Warning */}
-                    {address && !hasSufficientBalance() && (
-                        <div className="flex items-center gap-1 text-red-400 text-xs mt-2">
-                            <AlertTriangle size={12} />
-                            <span>Insufficient balance</span>
-                        </div>
-                    )}
 
                     {/* Error Messages */}
                     {writeError && (
@@ -363,37 +322,20 @@ export const OfferCard = ({ offer }: OfferCardProps) => {
                 </div>
             </div>
 
-            {/* Seller/Buyer Info */}
-            <div className="border-t border-gray-600 pt-4 mt-4">
-                <div className="flex items-center justify-between">
+            {/* Compact Footer */}
+            <div className="border-t border-gray-600 pt-2 mt-3">
+                <div className="flex items-center justify-between text-xs text-gray-400">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold text-sm">
-                                {offer.type === 'OFFER_TO_SELL' ? 'S' : 'B'}
-                            </span>
-                        </div>
-                        <div>
-                            <div className="font-medium text-white">
-                                {offer.type === 'OFFER_TO_SELL' ? 'Seller' : 'Buyer'}
-                            </div>
-                            <div className="text-sm text-gray-300">
-                                {formatAddress(offer.sellerAddress)}
-                            </div>
+                        <span>{formatAddress(offer.sellerAddress)}</span>
+                        <div className="flex items-center gap-1 text-green-400">
+                            <Shield size={12} />
+                            <span>Secure</span>
                         </div>
                     </div>
-
-                    <div className="flex items-center gap-1 text-green-400">
-                        <Shield size={16} />
-                        <span className="text-sm font-medium">Secure</span>
+                    <div className="flex items-center gap-1">
+                        <Clock size={10} />
+                        <span>{new Date(offer.createdAt).toLocaleDateString()}</span>
                     </div>
-                </div>
-            </div>
-
-            {/* Timestamp */}
-            <div className="border-t border-gray-600 pt-3 mt-3">
-                <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <Clock size={12} />
-                    <span>Created {new Date(offer.createdAt).toLocaleDateString()}</span>
                 </div>
             </div>
         </div>

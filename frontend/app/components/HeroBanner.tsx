@@ -42,7 +42,7 @@ export const HeroBanner = ({events}:{events:Events[]}) => {
     return (
         <div className="relative w-full h-96 rounded-3xl overflow-hidden shadow-2xl">
             <div
-                className="w-full h-full flex items-center justify-between p-12 text-white relative"
+                className="w-full h-full flex items-end justify-between p-12 text-white relative"
                 style={{
                     background: currentEvent.imageUrl
                         ? `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${currentEvent.imageUrl})`
@@ -51,7 +51,7 @@ export const HeroBanner = ({events}:{events:Events[]}) => {
                     backgroundPosition: 'center'
                 }}
             >
-                <div className="flex-1">
+                <div className="flex-1 pb-8">
                     <h2 className="text-5xl font-bold mb-2">{currentEvent.name}</h2>
                     <p className="text-xl mb-2 opacity-90">{currentEvent.venue}</p>
                     <Link href={`/event/${currentEvent.id}`}>

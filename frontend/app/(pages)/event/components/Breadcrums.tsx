@@ -8,8 +8,6 @@ export  const Breadcrumb = ({ eventName }:{eventName:string}) => {
                 Back to Events
             </button>
             <span>/</span>
-            <span>Concerts</span>
-            <span>/</span>
             <span className="text-white font-medium">{eventName}</span>
         </div>
     );

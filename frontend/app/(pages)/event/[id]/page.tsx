@@ -9,6 +9,8 @@ import {OfferCard} from "@/app/(pages)/event/components/OfferCard";
 import {eventService} from "@/app/service/events.service";
 import {offerService} from "@/app/service/offers.service";
 import {Offer, OfferTypeEnum} from "@/app/types/Offers";
+import Link from "next/link";
+import {Plus, ShoppingCart} from "lucide-react";
 
 interface EventDetailsPageProps {
     params: Promise<{
@@ -205,44 +207,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     {/* Sidebar */}
                     <div className="lg:col-span-1">
                         <EventInformation event={event} />
-
-                        {/* Quick Stats */}
-                        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-                            <h3 className="font-bold text-gray-900 mb-4">Market Stats</h3>
-                            <div className="space-y-3">
-                                {sellOffers.length > 0 ? (
-                                    <>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Sell Offers</span>
-                                            <span className="font-bold">{sellOffers.length}</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Lowest Price</span>
-                                            <span className="font-bold text-green-600">
-                                                {Math.min(...sellOffers.map(o => o.ask / Math.pow(10, 6))).toFixed(2)} PYUSD
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Highest Price</span>
-                                            <span className="font-bold">
-                                                {Math.max(...sellOffers.map(o => o.ask / Math.pow(10, 6))).toFixed(2)} PYUSD
-                                            </span>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="text-center text-gray-500 py-4">
-                                        No sell offers available
-                                    </div>
-                                )}
-
-                                {buyOffers.length > 0 && (
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-600">Buy Requests</span>
-                                        <span className="font-bold">{buyOffers.length}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
                     </div>
                 </div>
             </main>

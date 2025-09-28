@@ -1,6 +1,6 @@
 'use client';
 
-import {User, Wallet, LogIn} from "lucide-react";
+import {User, Wallet, LogIn, MessageCircle, FileText} from "lucide-react";
 import {ConnectButton} from '@rainbow-me/rainbowkit';
 import Link from "next/link";
 import Image from 'next/image';
@@ -27,7 +27,12 @@ export const Header = () => {
             </div>
             <div className="flex gap-6 items-center">
                 <Link href="/me" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800">My Account</Link>
-
+                <Link href="/proposals" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2">
+                    <FileText size={16}/>
+                </Link>
+                <Link href="/chat" className="text-gray-300 hover:text-white transition-colors duration-200 font-medium px-3 py-2 rounded-lg hover:bg-gray-800 flex items-center gap-2">
+                    <MessageCircle size={16}/>
+                </Link>
                 <ConnectButton.Custom>
                     {({
                           account,

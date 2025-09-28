@@ -195,7 +195,7 @@ export class IndexerService {
                     category,
                     imageUrl,
                     metadataUrl: metadataUri,
-                    status:eventStatusEnum.UPCOMING
+                    status: eventStatusEnum.UPCOMING
                 },
                 {upsert: true}
             )
@@ -341,16 +341,24 @@ export class IndexerService {
             loggerLib.logInfo({
                 message: "Detected OfferAccepted event",
                 offerId: offerId.toString(),
-                buyer: buyer.toLowerCase(),
+                buyerOrSeller: buyer.toLowerCase(),
                 blockNumber: event.blockNumber,
                 transactionHash: event.transactionHash,
                 blockHash: event.blockHash,
                 logIndex: event.logIndex
             })
 
+            const offer = await mongoLib.findOne(offerModel, {id: offerId.toNumber()});
+            if (!offer) {
+                loggerLib.logWarning(`Offer not found for id ${offerId.toNumber()}`);
+            }
+
             await mongoLib.updateOne(offerModel,
                 {id: offerId.toNumber()},
-                {buyerAddress: buyer.toLowerCase(), status: offerStatusEnum.ACCEPTED},
+                {
+                    ...(offer.type === offerTypeEnum.OFFER_TO_SELL ? {buyerAddress: buyer.toLowerCase()} : {sellerAddress: buyer.toLowerCase()}),
+                    status: offerStatusEnum.ACCEPTED
+                }
             );
         } catch (error) {
             loggerLib.logError('Error in handling OfferAccepted event');

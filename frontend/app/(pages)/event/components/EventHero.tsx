@@ -1,9 +1,9 @@
 'use client'
 import {useState} from "react";
-import {Calendar, Clock, Heart, MapPin, Share2, Shield, Star, Image} from "lucide-react";
+import {Calendar, Clock, MapPin, Shield, Star, Image, Plus, ShoppingCart} from "lucide-react";
 import {Events} from "@/app/types/Events";
+import Link from "next/link";
 export const EventHero = ({ event }:{event:Events}) => {
-    const [isLiked, setIsLiked] = useState(false);
     const [imageError, setImageError] = useState(false);
     const [imageLoading, setImageLoading] = useState(true);
 
@@ -66,12 +66,6 @@ export const EventHero = ({ event }:{event:Events}) => {
                     {/* Overlay gradient for better text readability */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                 </div>
-                {/* Image Actions Overlay */}
-                <div className="absolute bottom-4 right-4 flex gap-2">
-                    <button className="bg-white/90 backdrop-blur-sm p-2 rounded-lg shadow-lg hover:bg-white transition-colors">
-                        <Share2 size={16} className="text-gray-700" />
-                    </button>
-                </div>
             </div>
 
             {/* Event Details */}
@@ -106,24 +100,19 @@ export const EventHero = ({ event }:{event:Events}) => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-4">
-                    <button
-                        onClick={() => setIsLiked(!isLiked)}
-                        className={`p-3 rounded-xl border-2 transition-all ${
-                            isLiked
-                                ? 'border-red-500 bg-red-500/20 text-red-400'
-                                : 'border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white'
-                        }`}
-                        aria-label={isLiked ? 'Unlike event' : 'Like event'}
-                    >
-                        <Heart size={20} className={isLiked ? 'fill-current' : ''} />
-                    </button>
-
-                    <button
-                        className="p-3 rounded-xl border-2 border-gray-600 hover:border-gray-500 text-gray-300 hover:text-white transition-colors"
-                        aria-label="Share event"
-                    >
-                        <Share2 size={20} />
-                    </button>
+                    <Link href="/sell">
+                        <button className="px-6 py-3 rounded-xl border-2 border-green-500 text-white hover:bg-green-500/10 transition-all duration-200 flex items-center gap-2">
+                            <Plus size={20} />
+                            Create Offer to Sell
+                        </button>
+                    </Link>
+                    
+                    <Link href="/buy">
+                        <button className="px-6 py-3 rounded-xl border-2 border-red-500 text-white hover:bg-red-500/10 transition-all duration-200 flex items-center gap-2">
+                            <ShoppingCart size={20} />
+                            Create Offer to Buy
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>
