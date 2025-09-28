@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: false,
-        default: generateUsername()
+        default: generateUsername
     },
     nonce: {
         type: String,
