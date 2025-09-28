@@ -61,8 +61,8 @@ export default async function Home(){
             <footer className="bg-gradient-to-r from-gray-900 to-slate-900 text-gray-300 py-16 mt-16">
                 <div className="container mx-auto px-8">
                     <div className="text-center space-y-4">
-                        <h3 className="text-xl font-semibold text-white">Foyer</h3>
-                        <p className="text-gray-300 max-w-2xl mx-auto">We're the world's largest secondary marketplace for tickets to live events. Your gateway to unforgettable experiences.</p>
+                        {/*<h3 className="text-xl font-semibold text-white">Foyer</h3>*/}
+                        {/*<p className="text-gray-300 max-w-2xl mx-auto">We're the world's largest secondary marketplace for tickets to live events. Your gateway to unforgettable experiences.</p>*/}
                         <p className="text-sm text-gray-400">Prices are set by sellers and may be below or above face value.</p>
                         <div className="flex justify-center space-x-6 pt-4 text-sm">
                             <a href="#" className="hover:text-white transition-colors">About</a>
