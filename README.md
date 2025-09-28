@@ -4,7 +4,7 @@
 
 ![Foyer Logo](frontend/public/foyer_final_gitthub.png)
 
-**The world's largest decentralized secondary marketplace for event tickets**
+*Your gateway to unforgettable experiences through secure, blockchain-powered ticket trading*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -12,7 +12,7 @@
 [![Solidity](https://img.shields.io/badge/Solidity-363636?logo=solidity&logoColor=white)](https://soliditylang.org/)
 [![Ethereum](https://img.shields.io/badge/Ethereum-3C3C3D?logo=ethereum&logoColor=white)](https://ethereum.org/)
 
-*Your gateway to unforgettable experiences through secure, blockchain-powered ticket trading*
+
 
 [🚀 Live Demo](#) • [📖 Documentation](#installation) • [🤝 Contributing](#contributing) • [💬 Community](#support)
 
@@ -237,8 +237,21 @@ graph TD
 ```typescript
 // Ethereum Sepolia
 ADMIN_MANAGER_ADDRESS = "0xd7312bfbc95a459305393d7795d966aebeef78aa"
+// https://sepolia.etherscan.io/address/0xd7312bfbc95a459305393d7795d966aebeef78aa
+
 EVENT_MANAGER_ADDRESS = "0x2fdd630810692642ee03f881df712c212c982f70"
+// https://sepolia.etherscan.io/address/0x2fdd630810692642ee03f881df712c212c982f70
+
 OFFER_MANAGER_ADDRESS = "0x1198c36dfc9dd734afce45610708473e973c199d"
+// https://sepolia.etherscan.io/address/0x1198c36dfc9dd734afce45610708473e973c199d
+
+// Celo Sepolia
+KYC_VERIFIER_ADDRESS = "0x1da4235ba09377415cb5105a7d4749b152cc63af"
+https://celo-sepolia.blockscout.com/address/0x1DA4235bA09377415cb5105A7d4749b152cc63AF
+
+KYC_RELAYER_ADDRESS = "0x61f3db7fcc108a5cca70b71795eb333ca8ed7a52"
+//https://celo-sepolia.blockscout.com/address/0x61f3db7fcc108a5cca70b71795eb333ca8ed7a52
+
 ```
 
 ---
